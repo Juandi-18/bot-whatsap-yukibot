@@ -3,8 +3,8 @@ import { watchFile, unwatchFile } from 'fs'
 import { fileURLToPath } from 'url'
 
 global.owner = ['573196588149', '5492916450307', '5216671548329', '573247662531', '51921826291', '50493732693']
-global.botNumber = '573108615379
-global.pairingNumber = "573108615379" // Poner el número de Colombia aquí
+global.botNumber = '573108615379'
+global.pairingNumber = '573108615379'
 
 global.sessionName = 'Sessions/Owner'
 global.version = '^2.0 - Latest'

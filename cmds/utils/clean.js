@@ -10,49 +10,38 @@ const clean = {
         const maxBorrado = count > 50 ? 50 : count;
 
         try {
-            // Buscamos en todas las memorias posibles del bot
-            let messages = [];
+            // MÉTODO DE RASTREO DIRECTO: Pedimos a WhatsApp los mensajes reales del chat
+            // Esto incluirá el menú de !help aunque el bot no lo haya guardado en RAM
+            const storeMessages = await client.fetchMessagesFromWA(m.chat, { count: maxBorrado + 2 });
             
-            // 1. Memoria que creamos en main.js
-            if (client.messages && client.messages[m.chat]) {
-                messages = [...client.messages[m.chat].array];
-            }
+            // Si el método de arriba falla en tu versión, usamos el historial del store
+            let list = storeMessages || (client.store?.messages[m.chat]?.array) || [];
             
-            // 2. Si la memoria de main.js falló, intentamos con la del store (Baileys)
-            if (messages.length < 2 && client.store && client.store.messages[m.chat]) {
-                messages = client.store.messages[m.chat].array || [];
+            if (list.length === 0) {
+                return client.reply(m.chat, `❌ No pude encontrar mensajes en el historial del chat.`, m);
             }
 
-            if (messages.length === 0) {
-                return client.reply(m.chat, `❌ No hay mensajes grabados. Intenta escribir algo antes.`, m);
-            }
-
-            // Invertimos para borrar los más recientes primero
-            const toDelete = messages.slice(-maxBorrado).reverse();
+            // Invertimos para empezar por lo más nuevo
+            const toDelete = list.reverse().slice(0, maxBorrado);
 
             for (let msg of toDelete) {
-                // Pausa de seguridad para evitar baneo
+                // RITMO ANTI-SPAM: 1.5 segundos
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 try {
-                    // Borramos usando el ID del mensaje
+                    // Borramos usando la llave exacta que WhatsApp nos devolvió
                     await client.sendMessage(m.chat, { delete: msg.key });
-                    
-                    // IMPORTANTE: Si el mensaje que borramos estaba en nuestra memoria de main.js, 
-                    // lo quitamos de ahí también para que no cause errores después.
-                    if (client.messages[m.chat]) {
-                        client.messages[m.chat].array = client.messages[m.chat].array.filter(v => v.key.id !== msg.key.id);
-                    }
                 } catch (err) {
-                    continue; // Si falla uno, seguimos con el siguiente
+                    continue; 
                 }
             }
 
-            // Mensaje final silencioso
+            // Mensaje final
             return client.reply(m.chat, `✅ Limpieza completada.`, m);
 
         } catch (e) {
             console.log("ERROR EN CLEAN:", e);
+            // Si el rastreo falla, intentamos borrar solo el comando para no dejar rastro
             return await client.sendMessage(m.chat, { delete: m.key });
         }
     }

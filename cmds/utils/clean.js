@@ -7,37 +7,37 @@ const clean = {
         const count = parseInt(args[0]);
         if (isNaN(count) || count < 1) return client.reply(m.chat, `⚠️ ¿Cuántos mensajes quieres borrar?\nEjemplo: *${usedPrefix + command} 5*`, m);
 
-        const maxBorrado = count > 20 ? 20 : count; // Límite bajo para probar estabilidad
+        const maxBorrado = count > 20 ? 20 : count;
 
         try {
-            // MÉTODO COMPATIBLE: Buscamos en el historial que el bot ya tiene cargado
-            let messages = client.messages[m.chat]?.array || [];
-            if (messages.length === 0 && client.store) {
-                messages = client.store.messages[m.chat]?.array || [];
-            }
+            // Accedemos a la memoria global que definimos en main.js
+            let chatMem = client.messages ? client.messages[m.chat] : null;
+            let messages = chatMem?.array || [];
 
             if (messages.length === 0) {
-                return client.reply(m.chat, `❌ No encontré mensajes recientes para borrar en mi memoria.`, m);
+                return client.reply(m.chat, `❌ No tengo mensajes registrados en este chat.\n\n> *Tip:* Escribe un par de mensajes normales antes de usar el comando para que el bot los reconozca.`, m);
             }
 
-            // Tomamos los últimos mensajes y los invertimos
-            const toDelete = messages.slice(-maxBorrado).reverse();
+            // Filtramos el historial para no borrar el comando mismo de forma abrupta
+            const toDelete = messages.filter(v => v.key.id !== m.key.id).slice(-maxBorrado).reverse();
 
-            client.reply(m.chat, `⏳ Borrando ${toDelete.length} mensajes con ritmo de seguridad...`, m);
+            client.reply(m.chat, `⏳ Borrando ${toDelete.length} mensajes (historial detectado)...`, m);
 
             for (let msg of toDelete) {
-                // RITMO ANTI-SPAM: 2 segundos por mensaje
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // RITMO ANTI-SPAM: 1.5 segundos entre mensajes
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
-                // Intentamos borrar usando la llave del mensaje
-                await client.sendMessage(m.chat, { delete: msg.key });
+                try {
+                    await client.sendMessage(m.chat, { delete: msg.key });
+                } catch (err) {
+                    console.log("No se pudo borrar un mensaje individual:", err.message);
+                }
             }
 
-            return client.reply(m.chat, `✅ Limpieza terminada.`, m);
+            return client.reply(m.chat, `✅ Limpieza terminada con éxito.`, m);
 
         } catch (e) {
             console.log("DETALLE DEL ERROR FINAL:", e);
-            // Fallback: si todo falla, borra al menos el comando que escribiste
             return await client.sendMessage(m.chat, { delete: m.key });
         }
     }

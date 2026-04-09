@@ -146,8 +146,17 @@ export default async (client, m) => {
      await client.readMessages([m.key]);
      user.usedcommands = (user.usedcommands || 0) + 1;
      users.stats[today].cmds++;
-     await cmdData.run(client, m, args, usedPrefix, command, text);
+     
+     // Ejecutamos el comando
+     const result = await cmdData.run(client, m, args, usedPrefix, command, text);
+     
+     // --- NUEVO: Si el comando devolvió una respuesta, la guardamos en el historial ---
+     if (result && result.key) {
+        if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
+        client.messages[m.chat].array.push(result);
+     }
+     // --------------------------------------------------------------------------------
+     
   } catch (error) {
      console.error(error);
   }
-};

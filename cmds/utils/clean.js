@@ -5,43 +5,47 @@ const clean = {
     botAdmin: true,
     run: async (client, m, args, usedPrefix, command, text) => {
         const count = parseInt(args[0]);
-        if (isNaN(count) || count < 1) return client.reply(m.chat, `⚠️ ¿Cuántos mensajes quieres borrar?\nEjemplo: *${usedPrefix + command} 10*`, m);
+        if (isNaN(count) || count < 1) return client.reply(m.chat, `⚠️ ¿Cuántos mensajes quieres borrar?\nEjemplo: *${usedPrefix + command} 5*`, m);
 
         const maxBorrado = count > 50 ? 50 : count;
 
         try {
-            // MÉTODO DE RASTREO DIRECTO: Pedimos a WhatsApp los mensajes reales del chat
-            // Esto incluirá el menú de !help aunque el bot no lo haya guardado en RAM
-            const storeMessages = await client.fetchMessagesFromWA(m.chat, { count: maxBorrado + 2 });
-            
-            // Si el método de arriba falla en tu versión, usamos el historial del store
-            let list = storeMessages || (client.store?.messages[m.chat]?.array) || [];
-            
-            if (list.length === 0) {
-                return client.reply(m.chat, `❌ No pude encontrar mensajes en el historial del chat.`, m);
+            // Buscamos en el 'store', que es donde Baileys guarda el historial real
+            // Intentamos varias rutas comunes donde YukiBot guarda estos datos
+            let list = [];
+            if (client.store && client.store.messages[m.chat]) {
+                list = client.store.messages[m.chat].array || [];
+            } else if (client.messages && client.messages[m.chat]) {
+                list = client.messages[m.chat].array || [];
             }
 
-            // Invertimos para empezar por lo más nuevo
-            const toDelete = list.reverse().slice(0, maxBorrado);
+            if (list.length === 0) {
+                return client.reply(m.chat, `❌ No encontré mensajes en mi historial para borrar.`, m);
+            }
+
+            // Invertimos la lista para borrar de lo más nuevo a lo más viejo
+            // Incluimos el mensaje del comando y todo lo que esté antes
+            const toDelete = [...list].reverse().slice(0, maxBorrado);
 
             for (let msg of toDelete) {
-                // RITMO ANTI-SPAM: 1.5 segundos
+                // RITMO ANTI-SPAM (1.5 segundos)
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 try {
-                    // Borramos usando la llave exacta que WhatsApp nos devolvió
+                    // Borramos usando la llave que está en el store
                     await client.sendMessage(m.chat, { delete: msg.key });
                 } catch (err) {
-                    continue; 
+                    // Si falla uno (por ser muy viejo o ya borrado), seguimos
+                    continue;
                 }
             }
 
-            // Mensaje final
-            return client.reply(m.chat, `✅ Limpieza completada.`, m);
+            // Mensaje final silencioso
+            return client.reply(m.chat, `✅ Limpieza terminada.`, m);
 
         } catch (e) {
             console.log("ERROR EN CLEAN:", e);
-            // Si el rastreo falla, intentamos borrar solo el comando para no dejar rastro
+            // Si todo falla, al menos borra el comando que activó la función
             return await client.sendMessage(m.chat, { delete: m.key });
         }
     }

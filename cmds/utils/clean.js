@@ -17,7 +17,7 @@ const clean = {
         try {
             // Usamos un límite de seguridad
             const limit = count > 100 ? 100 : count;
-            const fetch = await client.fetchMessagesFromWA(m.chat, limit);
+            const fetch = await client.loadMessages(m.chat, limit);
             
             for (let i = 0; i < fetch.length; i++) {
                 // Pequeña pausa para evitar que WhatsApp nos bloquee por spam de borrado
@@ -25,8 +25,8 @@ const clean = {
                 await client.sendMessage(m.chat, { delete: fetch[i].key });
             }
         } catch (e) {
-            console.error(e);
-            return client.reply(m.chat, `❌ Ocurrió un error al intentar borrar.`, m);
+            console.log("DETALLE DEL ERROR:", e); // Esto imprimirá el error real en tu terminal de Codespaces
+            return client.reply(m.chat, `❌ Ocurrió un error: ${e.message}`, m);
         }
     }
 };

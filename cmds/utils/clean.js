@@ -10,34 +10,33 @@ const clean = {
         const maxBorrado = count > 20 ? 20 : count;
 
         try {
-            // Accedemos a la memoria global que definimos en main.js
             let chatMem = client.messages ? client.messages[m.chat] : null;
             let messages = chatMem?.array || [];
 
             if (messages.length === 0) {
-                return client.reply(m.chat, `❌ No tengo mensajes registrados en este chat.\n\n> *Tip:* Escribe un par de mensajes normales antes de usar el comando para que el bot los reconozca.`, m);
+                return client.reply(m.chat, `❌ No hay mensajes recientes en mi memoria.`, m);
             }
 
-            // Filtramos el historial para no borrar el comando mismo de forma abrupta
-            const toDelete = messages.filter(v => v.key.id !== m.key.id).slice(-maxBorrado).reverse();
-
-            client.reply(m.chat, `⏳ Borrando ${toDelete.length} mensajes (historial detectado)...`, m);
+            // Seleccionamos los mensajes SIN excluir nada (para que borre comandos y respuestas del bot)
+            const toDelete = messages.slice(-maxBorrado).reverse();
 
             for (let msg of toDelete) {
-                // RITMO ANTI-SPAM: 1.5 segundos entre mensajes
+                // Mantenemos el ritmo humano de 1.5 segundos
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 try {
                     await client.sendMessage(m.chat, { delete: msg.key });
                 } catch (err) {
-                    console.log("No se pudo borrar un mensaje individual:", err.message);
+                    // Si un mensaje ya fue borrado o es muy viejo, ignoramos el error y seguimos
+                    continue;
                 }
             }
 
+            // Mensaje final único
             return client.reply(m.chat, `✅ Limpieza terminada con éxito.`, m);
 
         } catch (e) {
-            console.log("DETALLE DEL ERROR FINAL:", e);
+            console.log("ERROR EN CLEAN:", e);
             return await client.sendMessage(m.chat, { delete: m.key });
         }
     }

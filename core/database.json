@@ -33,9 +33,9 @@
     },
     "51982219982@s.whatsapp.net": {
       "name": "Juandi",
-      "exp": 1619,
+      "exp": 1687,
       "level": 13,
-      "usedcommands": 18,
+      "usedcommands": 19,
       "pasatiempo": "",
       "description": "Silver en tanga",
       "marry": "51983254986@s.whatsapp.net",
@@ -100,9 +100,9 @@
     },
     "51983254986@s.whatsapp.net": {
       "name": "Silver",
-      "exp": 2055,
-      "level": 14,
-      "usedcommands": 35,
+      "exp": 2691,
+      "level": 16,
+      "usedcommands": 39,
       "pasatiempo": "",
       "description": "",
       "marry": "51982219982@s.whatsapp.net",
@@ -110,8 +110,8 @@
       "birth": "",
       "metadatos": null,
       "metadatos2": null,
-      "minxp": 1797,
-      "maxxp": 2145,
+      "minxp": 2534,
+      "maxxp": 2961,
       "sugCooldown": 1775843554777,
       "Subs": 1775757387074
     },
@@ -315,6 +315,19 @@
     },
     "51936953652@s.whatsapp.net": {
       "name": "Ali",
+      "exp": 0,
+      "level": 0,
+      "usedcommands": 0,
+      "pasatiempo": "",
+      "description": "",
+      "marry": "",
+      "genre": "",
+      "birth": "",
+      "metadatos": null,
+      "metadatos2": null
+    },
+    "50243858313@s.whatsapp.net": {
+      "name": "Cat Black",
       "exp": 0,
       "level": 0,
       "usedcommands": 0,
@@ -578,7 +591,7 @@
         "34641614823@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 6,
+              "msgs": 20,
               "cmds": 0
             }
           },
@@ -593,7 +606,7 @@
         "573228718096@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 23,
+              "msgs": 27,
               "cmds": 0
             }
           },
@@ -608,7 +621,7 @@
         "584128461248@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 6,
+              "msgs": 31,
               "cmds": 0
             }
           },
@@ -638,7 +651,7 @@
         "56984758053@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 18,
+              "msgs": 20,
               "cmds": 0
             }
           },
@@ -683,7 +696,7 @@
         "573171426763@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 7,
+              "msgs": 24,
               "cmds": 0
             }
           },
@@ -698,7 +711,22 @@
         "34641543278@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 1,
+              "msgs": 9,
+              "cmds": 0
+            }
+          },
+          "usedTime": null,
+          "lastCmd": 0,
+          "coins": 0,
+          "bank": 0,
+          "afk": -1,
+          "afkReason": "",
+          "characters": []
+        },
+        "50243858313@s.whatsapp.net": {
+          "stats": {
+            "2026-04-09": {
+              "msgs": 5,
               "cmds": 0
             }
           },
@@ -730,28 +758,28 @@
         "51983254986@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 59,
-              "cmds": 35
+              "msgs": 67,
+              "cmds": 39
             }
           },
-          "usedTime": "2026-04-09T17:56:27.036Z",
-          "lastCmd": 1775757387036,
-          "coins": 9206,
+          "usedTime": "2026-04-09T18:59:19.636Z",
+          "lastCmd": 1775761159636,
+          "coins": 17791,
           "bank": 0,
           "afk": -1,
           "afkReason": "",
           "characters": [],
-          "lastwork": 1775752935629
+          "lastwork": 1775761333879
         },
         "51982219982@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 33,
-              "cmds": 18
+              "msgs": 35,
+              "cmds": 19
             }
           },
-          "usedTime": "2026-04-09T17:55:21.938Z",
-          "lastCmd": 1775757321938,
+          "usedTime": "2026-04-09T18:59:52.659Z",
+          "lastCmd": 1775761192659,
           "coins": 11124,
           "bank": 0,
           "afk": -1,
@@ -969,7 +997,7 @@
         "573108615379@s.whatsapp.net": {
           "stats": {
             "2026-04-09": {
-              "msgs": 3,
+              "msgs": 4,
               "cmds": 0
             }
           },
@@ -1163,7 +1191,7 @@
       "prefix": [
         "!"
       ],
-      "commandsejecut": 91,
+      "commandsejecut": 96,
       "id": "120363406419380089@newsletter",
       "nameid": "𐚁˖`𝘚𝘵𝘪𝘤𝘬𝘦r𝘴 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 ✧˖°.",
       "type": "Owner",

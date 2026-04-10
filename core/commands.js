@@ -1,7 +1,6 @@
-export const bodyMenu = ""; 
-
+export const bodyMenu = "";
 export const commands = {
-economia: `» ˚୨•(=^●ω●^=)• ⊹ \`ECONOMY\` ⊹
+  economia: `» ˚୨•(=^●ω●^=)• ⊹ \`ECONOMY\` ⊹
 > ✐ Comandos de Economía para ganar dinero y divertirte con tus amigos.
 
 ꕤ \`$prefixw\` » \`$prefixwork\` » \`$prefixtrabajar\`
@@ -543,5 +542,5 @@ anime: `\n» ˚୨•(=^●ω●^=)• ⊹ \`ANIME\` ⊹
 ꕤ \`$prefixdance\`
 > Bailar.
 ꕤ \`$prefixcuddle\`
-> Acurrucarse. \`,
+> Acurrucarse.`,
 };

@@ -1,6 +1,6 @@
-// --- ./core/commands.js (PARTE 1) ---
+// --- ./core/commands.js ---
 
-export const bodyMenu = ""; 
+export const bodyMenu = "";
 
 export const menuObject = {
 economia: `» ˚୨•(=^●ω●^=)• ⊹ \`ECONOMY\` ⊹
@@ -545,5 +545,5 @@ anime: `\n» ˚୨•(=^●ω●^=)• ⊹ \`ANIME\` ⊹
 ꕤ \`$prefixdance\`
 > Bailar.
 ꕤ \`$prefixcuddle\`
-Acurrucarse. \`
+> Acurrucarse. \`,
 };

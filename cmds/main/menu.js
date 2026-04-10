@@ -60,8 +60,9 @@ export default {
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
       // --- CONFIGURACIÓN CON ENLACE EN LA IMAGEN ---
+      // --- CONFIGURACIÓN DE MENSAJE ÚNICO E INTERACTIVO ---
       const messageOptions = {
-        caption: menuTexto,
+        text: menuTexto,
         mentions: [m.sender],
         contextInfo: {
           forwardingScore: 999,
@@ -70,25 +71,17 @@ export default {
             title: botname,
             body: "¡Haz clic aquí para ver mi repositorio!",
             thumbnailUrl: banner,
-            sourceUrl: "https://github.com/Juandi-18/bot-whatsap-yukibot", // URL a donde redirige
+            sourceUrl: "https://github.com/Juandi-18/bot-whatsap-yukibot",
             mediaType: 1,
-            renderLargerThumbnail: true
+            showAdAttribution: true, // Esto le da un toque más oficial
+            renderLargerThumbnail: true // Esto hace que la imagen se vea grande y no pequeña
           }
         }
       };
 
-      try {
-        if (banner.includes('.mp4') || banner.includes('.webm')) {
-          await client.sendMessage(m.chat, { video: { url: banner }, gifPlayback: true, ...messageOptions }, { quoted: m });
-        } else {
-          await client.sendMessage(m.chat, { image: { url: banner }, ...messageOptions }, { quoted: m });
-        }
-      } catch (err) {
-        await client.sendMessage(m.chat, { text: menuTexto, mentions: [m.sender] }, { quoted: m });
-      }
+      // Enviamos solo UN mensaje de texto que contiene la tarjeta interactiva
+      await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
       await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
-  }
-};

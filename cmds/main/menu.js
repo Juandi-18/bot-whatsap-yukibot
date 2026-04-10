@@ -20,7 +20,7 @@ export default {
       
       const botname = botSettings.botname || 'YukiBot';
       const namebot = botSettings.namebot || 'Yuki-MD';
-      const banner = botSettings.banner || '';
+      const banner = botSettings.banner || 'https://i.imgur.com/ZIn0Aon.jpeg';
       const canalId = botSettings.id || '';
       const canalName = botSettings.nameid || 'Canal Oficial';
 

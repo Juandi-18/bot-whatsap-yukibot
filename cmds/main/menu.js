@@ -19,10 +19,7 @@ export default {
       const botSettings = global.db.data.settings[botId] || {};
       
       const botname = botSettings.botname || 'YukiBot-MD';
-      const namebot = botSettings.namebot || 'User';
-      
       const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
-      
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
 
       const alias = {
@@ -57,19 +54,21 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
+      // --- CONFIGURACIÓN PARA QUE SEA CLICKEABLE Y NO RECORTE ---
       const messageOptions = {
-        image: { url: banner }, 
-        caption: menuTexto,      
+        text: menuTexto, // Enviamos como TEXTO para que el link mande
         mentions: [m.sender],
         contextInfo: {
           forwardingScore: 0,
           isForwarded: false,
           externalAdReply: {
             title: botname,
-            body: `Developer: Juandi-18`,
+            body: "Click aquí para ir a comands.com",
+            thumbnailUrl: banner,
             sourceUrl: "https://comands.com",
-            mediaType: 2, 
-            renderLargerThumbnail: false 
+            mediaType: 1, 
+            renderLargerThumbnail: true, // Esto hace que la imagen se vea grande
+            showAdAttribution: false
           }
         }
       };

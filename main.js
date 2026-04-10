@@ -56,10 +56,10 @@ export default async (client, m) => {
     groupName = groupMetadata?.subject || ''
     groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || []
   }  
-  const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === botJid || p.jid === botJid || p.id === botJid || p.lid === botJid ) : false
-  const isAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === sender || p.jid === sender || p.id === sender || p.lid === sender ) : false
-  const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].includes(sender);
-  // --- INTERRUPTOR PRIVADO ---
+  // --- MEJORA EN DETECCIÓN DE ADMINS ---
+  const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(botJid)) : false
+  const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(sender)) : false
+  const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
   // settings.onlyOwnerMode es la variable que controlaremos con el comando
   if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) {
     return; // Si el modo privado está ON y no eres dueño ni el bot, se detiene todo aquí.

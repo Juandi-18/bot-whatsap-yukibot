@@ -18,10 +18,14 @@ export default {
       const botId = client?.user?.id.split(':')[0] + '@s.whatsapp.net';
       const botSettings = global.db.data.settings[botId] || {};
       
-      const botname = botSettings.botname || 'YukiBot';
-      const namebot = botSettings.namebot || 'Yuki-MD';
-      const banner = botSettings.banner || 'https://i.imgur.com/ZIn0Aon.jpeg';
-      const canalId = botSettings.id || '';
+      // --- VALORES POR DEFECTO (Para evitar errores si la DB está vacía) ---
+      const botname = botSettings.botname || 'ECHIDNA';
+      const namebot = botSettings.namebot || 'Prem-Bot';
+      
+      // Si el banner de la DB falla o no existe, usa este de respaldo (puedes cambiar este link por uno tuyo)
+      const banner = botSettings.banner || 'https://i.imgur.com/ZIn0Aon.jpeg'; 
+      
+      const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
       const canalName = botSettings.nameid || 'Canal Oficial';
 
       const alias = {
@@ -43,7 +47,7 @@ export default {
       const sections = menuObject;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
-      // --- DISEÑO ESTILO ECHIDNA ---
+      // --- DISEÑO ESTILO ECHIDNA RE-ESTRUCTURADO ---
       let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname} (${namebot})\n`;
       menuTexto += `ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs\n`;
       menuTexto += `╭┈ ↷\n`;
@@ -53,31 +57,37 @@ export default {
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
       menuTexto += `│ https://whatsapp.com/channel/${canalId.split('@')[0]}\n`;
       menuTexto += `╰─────────────────\n\n`;
+      
       menuTexto += content;
 
-      // Reemplazamos el prefijo dinámicamente en los comandos del core
+      // Reemplazo dinámico del prefijo
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- ENVÍO LIMPIO (SIN REENVIADO FEO) ---
+      // --- CONFIGURACIÓN DE ENVÍO SEGURO ---
       const messageOptions = {
         caption: menuTexto,
         mentions: [m.sender],
         contextInfo: {
-          // Esto quita la etiqueta de reenviado y la tarjeta de canal publicitaria
           forwardingScore: 0,
           isForwarded: false,
-          externalAdReply: null 
+          externalAdReply: null // Esto elimina la tarjeta publicitaria que ensucia el menú
         }
       };
 
-      if (banner.includes('.mp4') || banner.includes('.webm')) {
-        await client.sendMessage(m.chat, { video: { url: banner }, gifPlayback: true, ...messageOptions }, { quoted: m });
-      } else {
-        await client.sendMessage(m.chat, { image: { url: banner }, ...messageOptions }, { quoted: m });
+      // Intentamos enviar con el banner, si falla enviamos solo el texto para no romper el comando
+      try {
+        if (banner.includes('.mp4') || banner.includes('.webm')) {
+          await client.sendMessage(m.chat, { video: { url: banner }, gifPlayback: true, ...messageOptions }, { quoted: m });
+        } else {
+          await client.sendMessage(m.chat, { image: { url: banner }, ...messageOptions }, { quoted: m });
+        }
+      } catch (err) {
+        // Si la imagen falla, envía al menos el texto
+        await client.sendMessage(m.chat, { text: menuTexto, mentions: [m.sender] }, { quoted: m });
       }
 
     } catch (e) {
-      await m.reply(`> Ha ocurrido un error: *${e.message}*`)
+      await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
   }
 };

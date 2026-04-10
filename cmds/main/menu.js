@@ -54,9 +54,9 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- CONFIGURACIÓN PARA QUE SEA CLICKEABLE Y NO RECORTE ---
+      // --- CONFIGURACIÓN PARA EVITAR RECORTE (MODO VERTICAL) ---
       const messageOptions = {
-        text: menuTexto, // Enviamos como TEXTO para que el link mande
+        text: menuTexto,
         mentions: [m.sender],
         contextInfo: {
           forwardingScore: 0,
@@ -66,8 +66,9 @@ export default {
             body: "Click aquí para ir a comands.com",
             thumbnailUrl: banner,
             sourceUrl: "https://comands.com",
-            mediaType: 1, 
-            renderLargerThumbnail: true, // Esto hace que la imagen se vea grande
+            // CAMBIO CLAVE: Usamos mediaType 2 (video) para forzar el contenedor vertical
+            mediaType: 2, 
+            renderLargerThumbnail: true,
             showAdAttribution: false
           }
         }

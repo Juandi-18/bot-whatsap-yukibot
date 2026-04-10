@@ -8,20 +8,28 @@ export default {
     const settings = global.db.data.settings[botJid] || {};
     const estado = chat.isBanned ?? false;
 
-    // --- LÓGICA DE PERMISOS CORREGIDA (DUEÑO, BOT Y ADMINS) ---
+    // --- LÓGICA DE PERMISOS RE-CORREGIDA ---
+    const groupMetadata = m.isGroup ? await client.groupMetadata(m.chat).catch(() => null) : null;
+    const participants = groupMetadata?.participants || [];
+    const admins = participants.filter(p => p.admin !== null).map(p => p.id);
+    
+    // Verificamos si el remitente es Admin del grupo
+    const isAdmins = admins.includes(m.sender);
+    
+    // Verificamos si es Dueño
     const isOwners = [
       botJid,
       ...(settings.owner ? [settings.owner] : []),
       ...global.owner.map(num => num + '@s.whatsapp.net')
-    ].includes(m.sender);
+    ].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     
     const isBot = m.key.fromMe;
 
-    // Si NO es dueño AND NO es el bot AND NO es admin del grupo, ENTONCES bloqueamos
-    if (!isOwners && !isBot && !m.isGroupAdmins) {
+    // LA CONDICIÓN FINAL: Si no es ninguna de las 3, afuera.
+    if (!isOwners && !isBot && !isAdmins) {
       return m.reply('《✧》 Solo el *Dueño*, el *Bot* o *Administradores* pueden usar este comando.');
     }
-    // ---------------------------------------------------------
+    // ----------------------------------------
 
     if (args[0] === 'off') {
       if (estado) return m.reply('《✧》 El *Bot* ya estaba *desactivado* en este grupo.');

@@ -22,7 +22,7 @@ export default {
       const namebot = botSettings.namebot || 'User';
       
       // Imagen por defecto si no hay una en la DB
-      const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg; 
+      const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
       
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
       const canalName = botSettings.nameid || 'YukiBot Canal';

@@ -3,6 +3,24 @@ export default {
   category: 'grupo',
   isAdmin: true,
   run: async (client, m, args, usedPrefix, command) => {
+    const botJid = client.user.id.split(':')[0] + "@s.whatsapp.net";
+    const settings = global.db.data.settings[botJid] || {};
+    
+    // --- LÓGICA DE PERMISOS (DUEÑO Y BOT) ---
+    const isOwners = [
+      botJid,
+      ...(settings.owner ? [settings.owner] : []),
+      ...global.owner.map(num => num + '@s.whatsapp.net')
+    ].includes(m.sender);
+    
+    const isBot = m.key.fromMe;
+
+    // Validación: Dueño, Bot o Admin del grupo
+    if (!isOwners && !isBot && !m.isGroupAdmins) {
+      return m.reply('《✧》 Solo el *Dueño*, el *Bot* o *Administradores* pueden usar este comando.');
+    }
+    // ----------------------------------------
+
     const groupMetadata = m.isGroup ? await client.groupMetadata(m.chat).catch(() => null) : null
     const groupParticipants = groupMetadata?.participants || []
     const mentions = groupParticipants.map(p => p.jid || p.id || p.lid || p.phoneNumber).filter(Boolean).map(id => client.decodeJid(id))
@@ -14,6 +32,7 @@ export default {
     const hasSticker = Boolean(src.message?.stickerMessage || src.mtype === 'stickerMessage' || src.mimetype === 'sticker' || src.mediaType === 'sticker')
     const isQuoted = Boolean(m.quoted)
     const originalText = (src.caption || src.text || src.body || '').trim()
+
     try {
       if (hasImage || hasVideo) {
         const media = await src.download()
@@ -41,14 +60,14 @@ export default {
         return client.sendMessage(m.chat, { sticker: media, mentions }, { quoted: null })
       }
       if (isQuoted && originalText) {
-      return client.sendMessage(m.chat, { text: originalText, mentions }, { quoted: null })
+        return client.sendMessage(m.chat, { text: originalText, mentions }, { quoted: null })
       }
       if (userText) {
-      return client.sendMessage(m.chat, { text: userText, mentions }, { quoted: null })
+        return client.sendMessage(m.chat, { text: userText, mentions }, { quoted: null })
       }
       return m.reply(`《✧》 *Ingresa* un texto o *responde* a uno`)
     } catch (e) {
-      return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*.\n> [Error: *${e.message}*]`)
     }
   }
 }

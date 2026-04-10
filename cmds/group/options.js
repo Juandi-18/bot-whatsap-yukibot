@@ -16,20 +16,28 @@ export default {
     const chatData = global.db.data.chats[m.chat];
     const settings = global.db.data.settings[botJid] || {};
     
-    // --- LÓGICA DE PERMISOS CORREGIDA (DUEÑO, BOT Y ADMINS) ---
+    // --- LÓGICA DE PERMISOS RE-CORREGIDA (DUEÑO, BOT Y ADMINS REALES) ---
+    const groupMetadata = m.isGroup ? await client.groupMetadata(m.chat).catch(() => null) : null;
+    const participants = groupMetadata?.participants || [];
+    const admins = participants.filter(p => p.admin !== null).map(p => p.id);
+    
+    // Verificamos si el remitente es Admin del grupo
+    const isAdmins = admins.includes(m.sender);
+    
+    // Verificamos si es Dueño (usando decodeJid para mayor seguridad)
     const isOwners = [
       botJid,
       ...(settings.owner ? [settings.owner] : []),
       ...global.owner.map(num => num + '@s.whatsapp.net')
-    ].includes(m.sender);
+    ].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     
     const isBot = m.key.fromMe;
 
-    // Si NO es dueño AND NO es el bot AND NO es admin del grupo, ENTONCES bloqueamos
-    if (!isOwners && !isBot && !m.isGroupAdmins) {
+    // Si NO es dueño AND NO es el bot AND NO es admin REAL, bloqueamos
+    if (!isOwners && !isBot && !isAdmins) {
       return m.reply('《✧》 Solo el *Dueño*, el *Bot* o *Administradores* pueden usar este comando.');
     }
-    // ---------------------------------------------------------
+    // -------------------------------------------------------------------
 
     const botname = settings.namebot || 'YukiBot';
     const stateArg = args[0]?.toLowerCase();

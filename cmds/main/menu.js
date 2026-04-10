@@ -21,10 +21,10 @@ export default {
       const botname = botSettings.botname || 'YukiBot-MD';
       const namebot = botSettings.namebot || 'User';
       
+      // Imagen por defecto (puedes cambiar este link si prefieres otra imagen fija)
       const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
       
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
-      const canalName = botSettings.nameid || 'YukiBot Canal';
 
       const alias = {
         anime: ['anime', 'reacciones'],
@@ -45,12 +45,13 @@ export default {
       const sections = commands;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
+      // --- DISEÑO DEL MENÚ CON LA NUEVA URL ---
       let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname}\n`;
       menuTexto += `ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs\n`;
       menuTexto += `╭┈ ↷\n`;
-      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝐝 𝓫𝔂 Juandi-18 ❤️\n`;
+      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝓭 𝓫𝔂 Juandi-18 ❤️\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴏᴍᴀɴᴅᴏs ෴\n`;
-      menuTexto += `│ https://github.com/Juandi-18/bot-whatsap-yukibot\n`;
+      menuTexto += `│ https://comands.com\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
       menuTexto += `│ https://whatsapp.com/channel/${canalId.split('@')[0]}\n`;
       menuTexto += `╰─────────────────\n\n`;
@@ -58,24 +59,26 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
+      // --- CONFIGURACIÓN DE MENSAJE LIMPIO (SIN REENVIADO) ---
       const messageOptions = {
         text: menuTexto,
         mentions: [m.sender],
         contextInfo: {
-          forwardingScore: 999,
-          isForwarded: true,
+          forwardingScore: 0,      // Elimina el contador de "muchas veces"
+          isForwarded: false,      // Elimina la etiqueta de "Reenviado"
           externalAdReply: {
             title: botname,
-            body: "¡Haz clic aquí para ver mi repositorio!",
+            body: "YukiBot-MD • Visit: comands.com",
             thumbnailUrl: banner,
-            sourceUrl: "https://github.com/Juandi-18/bot-whatsap-yukibot",
+            sourceUrl: "https://comands.com", // URL actualizada
             mediaType: 1,
-            showAdAttribution: true,
+            showAdAttribution: false,
             renderLargerThumbnail: true
           }
         }
       };
 
+      // Envío único del mensaje interactivo
       await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {

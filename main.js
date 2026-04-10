@@ -59,6 +59,11 @@ export default async (client, m) => {
   const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === botJid || p.jid === botJid || p.id === botJid || p.lid === botJid ) : false
   const isAdmins = m.isGroup ? groupAdmins.some(p => p.phoneNumber === sender || p.jid === sender || p.id === sender || p.lid === sender ) : false
   const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].includes(sender);
+  // --- INTERRUPTOR PRIVADO ---
+  // settings.onlyOwnerMode es la variable que controlaremos con el comando
+  if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) {
+    return; // Si el modo privado está ON y no eres dueño ni el bot, se detiene todo aquí.
+  }
 
   // Plugins All
   for (const name in global.plugins) {

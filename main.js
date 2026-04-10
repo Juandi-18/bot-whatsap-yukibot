@@ -144,9 +144,10 @@ export default async (client, m) => {
      const allowedInPrivateForUsers = ['help', 'menu', 'ping', 'speed', 'status', 'estado'] // Lista resumida
      if (!isOwners && !allowedInPrivateForUsers.includes(command)) return;
   }
-  if (chat?.isBanned && !(command === 'bot' && text === 'on') && !isOwners) {
-     await m.reply(`ꕥ El bot está desactivado aquí.`);
-     return;
+  // Ahora permitimos que Admins, Dueños o el Bot ignoren el baneo para usar "!bot on"
+  if (chat?.isBanned && !(command === 'bot' && (text === 'on' || args[0] === 'on')) && !isOwners && !isAdmins && !m.key.fromMe) {
+      // Si el bot está desactivado y NO eres admin/dueño tratando de prenderlo, no respondas.
+      return; 
   }
 
   const cmdData = global.comandos.get(command);

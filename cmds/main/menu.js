@@ -44,7 +44,7 @@ export default {
       const input = normalize(args[0] || '');
       const cat = Object.keys(alias).find(k => alias[k].map(normalize).includes(input));
       
-      const sections = menuObject;
+      const sections = commands;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
       // --- DISEÑO ESTILO ECHIDNA RE-ESTRUCTURADO ---

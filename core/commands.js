@@ -1,8 +1,6 @@
-// --- ./core/commands.js ---
+export const bodyMenu = ""; 
 
-export const bodyMenu = "";
-
-export const menuObject = {
+export const commands = {
 economia: `» ˚୨•(=^●ω●^=)• ⊹ \`ECONOMY\` ⊹
 > ✐ Comandos de Economía para ganar dinero y divertirte con tus amigos.
 

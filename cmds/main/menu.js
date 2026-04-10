@@ -17,14 +17,9 @@ export default {
     try {
       const botId = client?.user?.id.split(':')[0] + '@s.whatsapp.net';
       const botSettings = global.db.data.settings[botId] || {};
-      
       const botname = botSettings.botname || 'YukiBot-MD';
       const bannerUrl = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
-
-      // --- DESCARGAMOS LA IMAGEN PARA QUE NO SE RECORTE ---
-      const response = await fetch(bannerUrl);
-      const buffer = await response.buffer();
 
       const alias = {
         anime: ['anime', 'reacciones'],
@@ -41,7 +36,6 @@ export default {
 
       const input = normalize(args[0] || '');
       const cat = Object.keys(alias).find(k => alias[k].map(normalize).includes(input));
-      
       const sections = commands;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
@@ -54,25 +48,23 @@ export default {
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
       menuTexto += `│ https://whatsapp.com/channel/${canalId.split('@')[0]}\n`;
       menuTexto += `╰─────────────────\n\n`;
-      
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- EL MODO "ECHIDNA" (VERTICAL + LINK) ---
+      // --- EL TRUCO FINAL PARA CERO RECORTE ---
       await client.sendMessage(m.chat, {
-        text: menuTexto,
+        image: { url: bannerUrl }, // Enviamos la imagen real (mantiene proporción vertical)
+        caption: menuTexto,        // El texto va abajo de la imagen completa
         contextInfo: {
           forwardingScore: 0,
           isForwarded: false,
-          externalAdReply: {
+          externalAdReply: { // Este mini-objeto le da el comportamiento de link
             title: botname,
-            body: "Click aquí para ir a comands.com",
+            body: "Click para ir a comands.com",
+            sourceUrl: "https://comands.com",
             mediaType: 1,
-            renderLargerThumbnail: true,
-            showAdAttribution: false,
-            // Usamos el buffer directamente en lugar de la URL para evitar recortes
-            thumbnail: buffer, 
-            sourceUrl: "https://comands.com"
+            renderLargerThumbnail: false, // IMPORTANTE: False para que no genere su propia miniatura recortada
+            thumbnailUrl: bannerUrl
           }
         },
         mentions: [m.sender]

@@ -2,7 +2,7 @@ const onlyowner = {
     command: ['onlyowner', 'modoprivado'],
     category: 'owner',
     isOwner: true, 
-    run: async (client, m, args) => { // Simplificamos la entrada de parámetros
+    run: async (client, m, args, usedPrefix, command, text) => {
         const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net';
         
         // Verificación de seguridad para la base de datos

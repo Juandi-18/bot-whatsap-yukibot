@@ -21,7 +21,6 @@ export default {
       const botname = botSettings.botname || 'YukiBot-MD';
       const namebot = botSettings.namebot || 'User';
       
-      // Imagen por defecto si no hay una en la DB
       const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
       
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
@@ -49,7 +48,7 @@ export default {
       let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname}\n`;
       menuTexto += `ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs\n`;
       menuTexto += `╭┈ ↷\n`;
-      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝓭 𝓫𝔂 Juandi-18 ❤️\n`;
+      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝐝 𝓫𝔂 Juandi-18 ❤️\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴏᴍᴀɴᴅᴏs ෴\n`;
       menuTexto += `│ https://github.com/Juandi-18/bot-whatsap-yukibot\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
@@ -59,8 +58,6 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- CONFIGURACIÓN CON ENLACE EN LA IMAGEN ---
-      // --- CONFIGURACIÓN DE MENSAJE ÚNICO E INTERACTIVO ---
       const messageOptions = {
         text: menuTexto,
         mentions: [m.sender],
@@ -73,15 +70,17 @@ export default {
             thumbnailUrl: banner,
             sourceUrl: "https://github.com/Juandi-18/bot-whatsap-yukibot",
             mediaType: 1,
-            showAdAttribution: true, // Esto le da un toque más oficial
-            renderLargerThumbnail: true // Esto hace que la imagen se vea grande y no pequeña
+            showAdAttribution: true,
+            renderLargerThumbnail: true
           }
         }
       };
 
-      // Enviamos solo UN mensaje de texto que contiene la tarjeta interactiva
       await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
+      console.error(e);
       await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
+  }
+};

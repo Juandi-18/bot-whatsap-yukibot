@@ -159,14 +159,9 @@ export default async (client, m) => {
   // Validación de Admins
   // --- VALIDACIÓN DE PERMISOS UNIFICADA (ADMIN / DUEÑO / BOT) ---
   if (cmdData.isAdmin) {
-      // Definimos quién tiene permiso:
-      // 1. Es Administrador del grupo (isAdmins)
-      // 2. Es Dueño del bot (isOwners)
-      // 3. Es el propio Bot enviando el mensaje (m.key.fromMe)
-      const tienePermiso = isAdmins || isOwners || m.key.fromMe;
-
+    const tienePermiso = isAdmins || isOwners || m.key.fromMe; // El "||" significa "O"
       if (!tienePermiso) {
-          return client.reply(m.chat, "❌ *Acceso Denegado*\nEste comando solo puede ser usado por: *Administradores, el Dueño o el Bot*.", m);
+        return client.reply(m.chat, "❌ Solo Admins, el Dueño o el Bot pueden usar esto.", m);
       }
   }
 

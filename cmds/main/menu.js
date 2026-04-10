@@ -21,7 +21,6 @@ export default {
       const botname = botSettings.botname || 'YukiBot-MD';
       const namebot = botSettings.namebot || 'User';
       
-      // Imagen por defecto (puedes cambiar este link si prefieres otra imagen fija)
       const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg'; 
       
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
@@ -45,7 +44,6 @@ export default {
       const sections = commands;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
-      // --- DISEÑO DEL MENÚ CON LA NUEVA URL ---
       let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname}\n`;
       menuTexto += `ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs\n`;
       menuTexto += `╭┈ ↷\n`;
@@ -59,34 +57,28 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- CONFIGURACIÓN DE ENVÍO TIPO IMAGEN INTERACTIVA ---
-      // Esta configuración asegura que la imagen salga vertical y sea clickeable
       const messageOptions = {
-        image: { url: banner }, // Aquí va la URL de tu banner
-        caption: menuTexto,      // Texto del menú abajo de la imagen
+        image: { url: banner }, 
+        caption: menuTexto,      
         mentions: [m.sender],
-        
         contextInfo: {
           forwardingScore: 0,
           isForwarded: false,
-          
-          // --- ESTA ES LA CLAVE ---
-          // Esta sección crea el enlace interactivo al hacer clic en la foto
           externalAdReply: {
             title: botname,
-            body: `Developer: Juandi-18`, // Pon aquí lo que quieras
-            sourceUrl: "https://comands.com", // URL a donde redirige
-            mediaType: 2, // ¡Cambio a tipo 2 (Video/Live)! A veces ayuda a mantener la verticalidad.
-            renderLargerThumbnail: false, // ¡FALSO! Queremos que la imagen la envíe Baileys, no WhatsApp.
-            // thumbnailUrl: banner // ¡NO! Quitamos esto para que no duplique.
+            body: `Developer: Juandi-18`,
+            sourceUrl: "https://comands.com",
+            mediaType: 2, 
+            renderLargerThumbnail: false 
           }
         }
       };
 
-      // Enviamos solo UN mensaje de tipo imagen interactiva
       await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
       console.error(e);
       await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
+  }
+};

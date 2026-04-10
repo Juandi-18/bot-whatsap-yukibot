@@ -51,11 +51,9 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- ESTRATEGIA FINAL: IMAGEN COMO DOCUMENTO O MINI-CATÁLOGO ---
-      // Esto evita que WhatsApp aplique el recorte 16:9 de las vistas previas de enlaces
+      // --- EL "SANTO GRIAL" DEL MENÚ VERTICAL CLICKEABLE ---
       const messageOptions = {
-        image: { url: bannerUrl },
-        caption: menuTexto,
+        text: menuTexto,
         mentions: [m.sender],
         contextInfo: {
           forwardingScore: 0,
@@ -63,22 +61,25 @@ export default {
           externalAdReply: {
             title: botname,
             body: "Click para ir a comands.com",
+            // IMPORTANTE: thumbnailUrl debe ser el link directo
+            thumbnailUrl: bannerUrl, 
             sourceUrl: "https://comands.com",
             mediaType: 1,
-            // ALERTA: No uses renderLargerThumbnail aquí si envías 'image' arriba
-            // porque causa el conflicto de recorte que viste antes.
-            renderLargerThumbnail: false, 
-            thumbnailUrl: bannerUrl
+            // renderLargerThumbnail: true es lo que hace que se vea grande
+            renderLargerThumbnail: true, 
+            showAdAttribution: false,
+            // Agregamos esto para forzar que no use el estilo de "link de noticia"
+            containsAutoReply: true 
           }
         }
       };
 
+      // ENVIAMOS SOLO TEXTO CON LA TARJETA CONFIGURADA
       await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
       console.error(e);
-      // Solo respondemos si el error no es por una interrupción de red
-      if (m.reply) await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
+      await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
   }
 };

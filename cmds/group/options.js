@@ -16,7 +16,7 @@ export default {
     const chatData = global.db.data.chats[m.chat];
     const settings = global.db.data.settings[botJid] || {};
     
-    // --- LÓGICA DE PERMISOS (DUEÑO Y BOT) ---
+    // --- LÓGICA DE PERMISOS CORREGIDA (DUEÑO, BOT Y ADMINS) ---
     const isOwners = [
       botJid,
       ...(settings.owner ? [settings.owner] : []),
@@ -25,11 +25,11 @@ export default {
     
     const isBot = m.key.fromMe;
 
-    // Si no es dueño, ni el bot, ni admin del grupo, bloqueamos
+    // Si NO es dueño AND NO es el bot AND NO es admin del grupo, ENTONCES bloqueamos
     if (!isOwners && !isBot && !m.isGroupAdmins) {
       return m.reply('《✧》 Solo el *Dueño*, el *Bot* o *Administradores* pueden usar este comando.');
     }
-    // ----------------------------------------
+    // ---------------------------------------------------------
 
     const botname = settings.namebot || 'YukiBot';
     const stateArg = args[0]?.toLowerCase();

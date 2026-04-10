@@ -18,15 +18,14 @@ export default {
       const botId = client?.user?.id.split(':')[0] + '@s.whatsapp.net';
       const botSettings = global.db.data.settings[botId] || {};
       
-      // --- VALORES POR DEFECTO (Para evitar errores si la DB está vacía) ---
-      const botname = botSettings.botname || 'ECHIDNA';
-      const namebot = botSettings.namebot || 'Prem-Bot';
+      const botname = botSettings.botname || 'YukiBot-MD';
+      const namebot = botSettings.namebot || 'User';
       
-      // Si el banner de la DB falla o no existe, usa este de respaldo (puedes cambiar este link por uno tuyo)
-      const banner = botSettings.banner || 'https://i.imgur.com/ZIn0Aon.jpeg'; 
+      // Imagen por defecto si no hay una en la DB
+      const banner = botSettings.banner || 'https://mir-s3-cdn-cf.behance.net/projects/404/203f3b67773387.Y3JvcCwxMDMxLDgwNiwyNzAsMTUw.jpg; 
       
       const canalId = botSettings.id || '0029VaGWwUfB4hdVxH1MDu43';
-      const canalName = botSettings.nameid || 'Canal Oficial';
+      const canalName = botSettings.nameid || 'YukiBot Canal';
 
       const alias = {
         anime: ['anime', 'reacciones'],
@@ -47,34 +46,37 @@ export default {
       const sections = commands;
       const content = cat ? String(sections[cat] || '') : Object.values(sections).map(s => String(s || '')).join('\n\n');
 
-      // --- DISEÑO ESTILO ECHIDNA RE-ESTRUCTURADO ---
-      let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname} (${namebot})\n`;
+      let menuTexto = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${botname}\n`;
       menuTexto += `ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs\n`;
       menuTexto += `╭┈ ↷\n`;
-      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝓭 𝓫𝔂 Desconocido ❤️\n`;
+      menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝓭 𝓫𝔂 Juandi-18 ❤️\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴏᴍᴀɴᴅᴏs ෴\n`;
-      menuTexto += `│ https://nekos.club/commands\n`;
+      menuTexto += `│ https://github.com/Juandi-18/bot-whatsap-yukibot\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
       menuTexto += `│ https://whatsapp.com/channel/${canalId.split('@')[0]}\n`;
       menuTexto += `╰─────────────────\n\n`;
       
       menuTexto += content;
-
-      // Reemplazo dinámico del prefijo
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- CONFIGURACIÓN DE ENVÍO SEGURO ---
+      // --- CONFIGURACIÓN CON ENLACE EN LA IMAGEN ---
       const messageOptions = {
         caption: menuTexto,
         mentions: [m.sender],
         contextInfo: {
-          forwardingScore: 0,
-          isForwarded: false,
-          externalAdReply: null // Esto elimina la tarjeta publicitaria que ensucia el menú
+          forwardingScore: 999,
+          isForwarded: true,
+          externalAdReply: {
+            title: botname,
+            body: "¡Haz clic aquí para ver mi repositorio!",
+            thumbnailUrl: banner,
+            sourceUrl: "https://github.com/Juandi-18/bot-whatsap-yukibot", // URL a donde redirige
+            mediaType: 1,
+            renderLargerThumbnail: true
+          }
         }
       };
 
-      // Intentamos enviar con el banner, si falla enviamos solo el texto para no romper el comando
       try {
         if (banner.includes('.mp4') || banner.includes('.webm')) {
           await client.sendMessage(m.chat, { video: { url: banner }, gifPlayback: true, ...messageOptions }, { quoted: m });
@@ -82,7 +84,6 @@ export default {
           await client.sendMessage(m.chat, { image: { url: banner }, ...messageOptions }, { quoted: m });
         }
       } catch (err) {
-        // Si la imagen falla, envía al menos el texto
         await client.sendMessage(m.chat, { text: menuTexto, mentions: [m.sender] }, { quoted: m });
       }
 

@@ -59,31 +59,34 @@ export default {
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- CONFIGURACIÓN DE MENSAJE LIMPIO (SIN REENVIADO) ---
+      // --- CONFIGURACIÓN DE ENVÍO TIPO IMAGEN INTERACTIVA ---
+      // Esta configuración asegura que la imagen salga vertical y sea clickeable
       const messageOptions = {
-        text: menuTexto,
+        image: { url: banner }, // Aquí va la URL de tu banner
+        caption: menuTexto,      // Texto del menú abajo de la imagen
         mentions: [m.sender],
+        
         contextInfo: {
-          forwardingScore: 0,      // Elimina el contador de "muchas veces"
-          isForwarded: false,      // Elimina la etiqueta de "Reenviado"
+          forwardingScore: 0,
+          isForwarded: false,
+          
+          // --- ESTA ES LA CLAVE ---
+          // Esta sección crea el enlace interactivo al hacer clic en la foto
           externalAdReply: {
             title: botname,
-            body: "YukiBot-MD • Visit: comands.com",
-            thumbnailUrl: banner,
-            sourceUrl: "https://comands.com", // URL actualizada
-            mediaType: 1,
-            showAdAttribution: false,
-            renderLargerThumbnail: true
+            body: `Developer: Juandi-18`, // Pon aquí lo que quieras
+            sourceUrl: "https://comands.com", // URL a donde redirige
+            mediaType: 2, // ¡Cambio a tipo 2 (Video/Live)! A veces ayuda a mantener la verticalidad.
+            renderLargerThumbnail: false, // ¡FALSO! Queremos que la imagen la envíe Baileys, no WhatsApp.
+            // thumbnailUrl: banner // ¡NO! Quitamos esto para que no duplique.
           }
         }
       };
 
-      // Envío único del mensaje interactivo
+      // Enviamos solo UN mensaje de tipo imagen interactiva
       await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
       console.error(e);
       await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
-  }
-};

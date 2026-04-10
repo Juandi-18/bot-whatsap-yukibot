@@ -157,9 +157,24 @@ export default async (client, m) => {
   }
 
   // Validación de Admins
-  if (cmdData.isAdmin && !isAdmins) return client.reply(m.chat, "⚠️ Solo administradores pueden usar esto.", m);
-  if (cmdData.botAdmin && !isBotAdmins) return client.reply(m.chat, "⚠️ Necesito ser admin para ejecutar esto.", m);
+  // --- VALIDACIÓN DE PERMISOS UNIFICADA (ADMIN / DUEÑO / BOT) ---
+  if (cmdData.isAdmin) {
+      // Definimos quién tiene permiso:
+      // 1. Es Administrador del grupo (isAdmins)
+      // 2. Es Dueño del bot (isOwners)
+      // 3. Es el propio Bot enviando el mensaje (m.key.fromMe)
+      const tienePermiso = isAdmins || isOwners || m.key.fromMe;
 
+      if (!tienePermiso) {
+          return client.reply(m.chat, "❌ *Acceso Denegado*\nEste comando solo puede ser usado por: *Administradores, el Dueño o el Bot*.", m);
+      }
+  }
+
+  // Validación de que el BOT sea admin para poder ejecutar (ej: kick, promote)
+  if (cmdData.botAdmin && !isBotAdmins) {
+      return client.reply(m.chat, "❌ *Error de permisos*\nNecesito ser Administrador del grupo para realizar esta acción.", m);
+  }
+  // --------------------------------------------------------------
   try {
      await client.readMessages([m.key]);
      user.usedcommands = (user.usedcommands || 0) + 1;

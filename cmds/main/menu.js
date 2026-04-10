@@ -20,13 +20,11 @@ export default {
       const isBot = m.sender === botId;
       const isOwner = global.opts['owner'] || global.db.data.settings[botId]?.owner === m.sender || m.fromMe;
       
-      // Obtener lista de admins si es un grupo
       const groupMetadata = m.isGroup ? await client.groupMetadata(m.chat) : {};
       const participants = m.isGroup ? groupMetadata.participants : [];
       const admins = participants.filter(p => p.admin).map(p => p.id);
       const isAdmin = admins.includes(m.sender);
 
-      // Bloqueo: Solo bot, dueño o admins
       if (!isBot && !isOwner && !isAdmin) {
         return m.reply('solo el bot o el dueño pueden usar este comando');
       }
@@ -40,10 +38,8 @@ export default {
       const botname = botSettings.botname || '';
       const namebot = botSettings.namebot || '';
       const banner = botSettings.banner || '';
-      const owner = botSettings.owner || '';
       const canalId = botSettings.id || '';
       const canalName = botSettings.nameid || '';
-      const prefix = botSettings.prefix;
       const link = botSettings.link || links.api.channel;
       const isOficialBot = botId === global.client.user.id.split(':')[0] + '@s.whatsapp.net';
       const botType = isOficialBot ? 'Principal/Owner' : 'Sub Bot';
@@ -78,7 +74,9 @@ export default {
       let menu = bodyMenu ? String(bodyMenu || '') + '\n\n' + content : content;
 
       const replacements = {
-        $owner: owner ? (!isNaN(owner.replace(/@s\.whatsapp\.net$/, '')) ? global.db.data.users[owner]?.name || owner.split('@')[0] : owner) : 'Oculto por privacidad',
+        // --- AQUÍ ESTÁ EL CAMBIO ---
+        $owner: 'Desconocido', 
+        // ---------------------------
         $botType: botType,
         $device: device,
         $tiempo: tiempo,
@@ -122,11 +120,11 @@ export default {
           },
           externalAdReply: {
             title: botname,
-            body: `${namebot}, mᥲძᥱ ᥕі𝗍һ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜`,
+            // --- OPCIONAL: También cambié el nombre aquí abajo ---
+            body: `${namebot}, mᥲძᥱ ᥕі𝗍һ ᑲᥡ Desconocido`,
             showAdAttribution: false,
             thumbnailUrl: banner,
             mediaType: 1,
-            previewType: 0,
             renderLargerThumbnail: true
           }
         }

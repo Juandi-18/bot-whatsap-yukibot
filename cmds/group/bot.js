@@ -8,7 +8,7 @@ export default {
     const settings = global.db.data.settings[botJid] || {};
     const estado = chat.isBanned ?? false;
 
-    // --- LÓGICA DE PERMISOS (DUEÑO Y BOT) ---
+    // --- LÓGICA DE PERMISOS CORREGIDA (DUEÑO, BOT Y ADMINS) ---
     const isOwners = [
       botJid,
       ...(settings.owner ? [settings.owner] : []),
@@ -17,11 +17,11 @@ export default {
     
     const isBot = m.key.fromMe;
 
-    // Si no es dueño, ni el bot, ni admin del grupo, bloqueamos
+    // Si NO es dueño AND NO es el bot AND NO es admin del grupo, ENTONCES bloqueamos
     if (!isOwners && !isBot && !m.isGroupAdmins) {
       return m.reply('《✧》 Solo el *Dueño*, el *Bot* o *Administradores* pueden usar este comando.');
     }
-    // ----------------------------------------
+    // ---------------------------------------------------------
 
     if (args[0] === 'off') {
       if (estado) return m.reply('《✧》 El *Bot* ya estaba *desactivado* en este grupo.');

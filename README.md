@@ -81,7 +81,7 @@ npm start
 
 > *Ejecutar estos comandos dentro de la carpeta YukiBot-MD*
 ```bash 
-termux-wake-lock && pm2 delete all && pm2 start npm --name "yukibot" -- start && pm2 save && pm2 logs 
+termux-wake-lock && pm2 start npm --name "yukibot" -- start && pm2 save
 ``` 
 
 #### Opciones Disponibles

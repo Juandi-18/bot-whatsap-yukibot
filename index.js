@@ -15,13 +15,6 @@ import db from "./core/system/database.js";
 import { startSubBot } from './core/subs.js';
 import { exec } from "child_process";
 
-const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
-// Esto intenta leer el historial guardado si el bot se reinicia
-if (fs.existsSync('./yuki_store.json')) store.readFromFile('./yuki_store.json');
-// Guarda el historial automáticamente cada 10 segundos
-setInterval(() => {
-    store.writeToFile('./yuki_store.json');
-}, 10000);
 const log = {
   info: (msg) => console.log(chalk.bgBlue.white.bold(`INFO`), chalk.white(msg)),
   success: (msg) => console.log(chalk.bgGreen.white.bold(`SUCCESS`), chalk.greenBright(msg)),
@@ -181,8 +174,6 @@ async function startBot() {
   });
 // === CORRECCIÓN AQUÍ ===
 // Asegúrate de que no haya espacios extra o puntos raros antes de 'store'
-    store.bind(sock.ev); 
-    sock.store = store;
     
     global.client = sock;
     sock.isInit = false;

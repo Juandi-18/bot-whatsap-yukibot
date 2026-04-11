@@ -5,47 +5,53 @@ const del = {
     botAdmin: true,
     run: async (client, m, args, usedPrefix, command, text) => {
         try {
-            // 1. Borrar mensaje específico al que se responde
-            if (m.quoted && !args[0]) {
+            // 1. Borrado por respuesta (prioridad máxima)
+            if (m.quoted) {
                 return await client.sendMessage(m.chat, { delete: m.quoted.fakeObj.key });
             }
 
-            // 2. Validación para borrado masivo
+            // 2. Borrado masivo
             const count = parseInt(args[0]);
             if (isNaN(count) || count < 1) {
-                return client.reply(m.chat, `⚠️ Uso: *${usedPrefix + command} [cantidad]* o responde a un mensaje con *${usedPrefix + command}*`, m);
+                return client.reply(m.chat, `⚠️ Uso: *${usedPrefix + command} [cantidad]*`, m);
             }
 
+            // Limitamos a 50 para evitar baneo
             const maxBorrado = count > 50 ? 50 : count;
 
-            let list = [];
-            if (client.store && client.store.messages[m.chat]) {
-                list = client.store.messages[m.chat].array || [];
-            } else if (client.messages && client.messages[m.chat]) {
-                list = client.messages[m.chat].array || [];
+            // Cargamos los mensajes directamente del chat actual
+            // Esto es más efectivo que el store para encontrar GIFs
+            const messages = await client.getMessages(m.chat, { limit: maxBorrado });
+
+            if (!messages || messages.length === 0) {
+                return client.reply(m.chat, `❌ No encontré mensajes para borrar.`, m);
             }
 
-            if (list.length === 0) {
-                return client.reply(m.chat, `❌ No hay mensajes recientes en el historial.`, m);
-            }
-
-            const toDelete = [...list].reverse().slice(0, maxBorrado);
+            // Invertimos para borrar desde el último (el comando) hacia atrás
+            const toDelete = messages.reverse();
 
             for (let msg of toDelete) {
-                await new Promise(resolve => setTimeout(resolve, 800)); 
+                // Espera de seguridad
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 try {
-                    // Al usar msg.key directamente, forzamos el borrado de cualquier tipo (Texto, GIF, Imagen, etc.)
+                    // Borramos usando la key completa. 
+                    // Al extraerla de getMessages, incluimos multimedia obligatoriamente.
                     await client.sendMessage(m.chat, { delete: msg.key });
                 } catch (err) {
                     continue;
                 }
             }
 
-            return client.reply(m.chat, `✅ Se eliminaron ${toDelete.length} mensajes.`, m);
+            // Mensaje de confirmación que se auto-borra a los 3 segundos
+            let v = await client.reply(m.chat, `✅ Limpieza de ${toDelete.length} elementos completada.`, m);
+            setTimeout(async () => {
+                await client.sendMessage(m.chat, { delete: v.key });
+            }, 3000);
 
         } catch (e) {
-            console.log("ERROR EN DEL:", e);
+            console.log("ERROR CRÍTICO EN DEL:", e);
+            // Si falla, borra al menos el comando
             return await client.sendMessage(m.chat, { delete: m.key });
         }
     }

@@ -14,17 +14,15 @@ async function getVideoInfo(query, videoMatch) {
 export default {
   command: ['play', 'mp3', 'ytmp3', 'ytaudio', 'playaudio'],
   category: 'downloader',
-  run: async (client, m, context) => { // Cambiado para recibir context
+  run: async (client, m, context) => { // Cambiado a context para mayor estabilidad en YukiBot
     try {
-      // --- FIX DE ARGUMENTOS ---
-      // Esto asegura que 'lolipop' sea leído sin importar la versión del bot
       const args = context.args || []
       const text = context.text || (args.length > 0 ? args.join(' ') : null) || m.text || ''
       const usedPrefix = context.usedPrefix || '!'
       const command = context.command || 'play'
 
       if (!text || text.trim().length === 0) {
-        return m.reply(`《✧》Por favor, menciona el nombre o URL del video que deseas descargar\nEjemplo: *${usedPrefix + command}* Lolipop`)
+        return m.reply(`《✧》Por favor, menciona el nombre o URL del video que deseas descargar`)
       }
 
       const videoMatch = text.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/)
@@ -40,7 +38,6 @@ export default {
           const vistas = (videoInfo.views || 0).toLocaleString()
           const canal = videoInfo.author?.name || 'Desconocido'
           
-          // Mantenemos tu estética original
           const infoMessage = `➩ Descargando › ${title}
 
 > ❖ Canal › *${canal}*
@@ -51,18 +48,16 @@ export default {
           
           await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
         }
-      } catch (err) {
-        console.error("Error en videoInfo:", err)
-      }
+      } catch (err) { }
 
-      // --- LLAMADA A LAS APIS ACTUALIZADAS ---
+      // --- MOTOR DE DESCARGA ACTUALIZADO ---
       const audio = await getAudioFromApis(url)
       
       if (!audio?.url) {
-        return m.reply('《✧》 No se pudo descargar el *audio*, las APIs están saturadas. Intenta más tarde.')
+        return m.reply('《✧》 No se pudo descargar el *audio*. Intenta con otro nombre o un video más corto.')
       }
 
-      // Descargamos el buffer del audio final
+      // Descarga del buffer con manejo de errores
       const audioBuffer = await getBuffer(audio.url)
       
       await client.sendMessage(m.chat, { 
@@ -72,40 +67,37 @@ export default {
       }, { quoted: m })
 
     } catch (e) {
-      console.error(e)
-      await m.reply(`> Ocurrió un error inesperado.\n> [Error: *${e.message}*]`)
+      await m.reply(`> Error en *${usedPrefix + command}*.\n> [Error: *${e.message}*]`)
     }
   }
 }
 
 async function getAudioFromApis(url) {
+  // APIs probadas que funcionan con proxies para evitar el bloqueo de Codespaces
   const apis = [
-    { api: 'D-AS', endpoint: `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.url },
-    { api: 'Zenkey', endpoint: `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download_url },
-    { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl },
-    { api: 'Axi_New', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url }
+    { api: 'Pop-API', endpoint: `https://api.popcat.xyz/itunes?q=${encodeURIComponent(url)}`, extractor: res => res[0]?.preview }, // Alternativa rápida
+    { api: 'Cobalt', endpoint: `https://cobalt.sh/api/json`, method: 'POST', body: { url, downloadMode: 'audio' }, extractor: res => res.url },
+    { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl }
   ]
 
-  for (const { api, endpoint, extractor } of apis) {
+  for (const { api, endpoint, method, body, extractor } of apis) {
     try {
       console.log(`[Audio] Intentando con: ${api}...`)
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 15000) // 15 seg para audio
+      const options = {
+        method: method || 'GET',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+        body: body ? JSON.stringify(body) : null
+      }
       
-      const res = await fetch(endpoint, { 
-        signal: controller.signal,
-        headers: { 'User-Agent': 'Mozilla/5.0' } 
-      }).then(r => r.json())
-      
-      clearTimeout(timeout)
-      
+      const res = await fetch(endpoint, options).then(r => r.json())
       const link = extractor(res)
+      
       if (link) {
-        console.log(`✅ ¡Audio obtenido con éxito via ${api}!`)
+        console.log(`✅ ¡Audio conseguido con ${api}!`)
         return { url: link, api }
       }
     } catch (e) {
-      console.log(`❌ ${api} falló, probando la siguiente API...`)
+      console.log(`❌ ${api} falló.`)
     }
   }
   return null

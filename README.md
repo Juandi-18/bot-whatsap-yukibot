@@ -40,10 +40,12 @@ Primero, concede permisos de almacenamiento a Termux:
 
 ```bash 
 termux-setup-storage
+```
 Luego, instala todas las dependencias necesarias del sistema:
 
 ```bash 
 apt update && apt upgrade -y && pkg install -y git nodejs ffmpeg imagemagick yarn
+```
 </details>
 
 <details>
@@ -53,10 +55,12 @@ Clona el repositorio oficial:
 
 ```bash 
 git clone https://github.com/Juandi-18/bot-whatsap-yukibot.git
+```
 Entra a la carpeta y descarga los módulos necesarios:
 
 ```bash 
 cd bot-whatsap-yukibot && npm install && yarn install
+```
 </details>
 
 <details>
@@ -66,6 +70,7 @@ Para iniciar el bot normalmente:
 
 ```bash 
 npm start
+```
 
 > *Si aparece **(Y/I/N/O/D/Z) [default=N] ?** use la letra **"y"** y luego **"ENTER"** para continuar con la instalación.*
 
@@ -75,7 +80,7 @@ npm start
 <summary><strong>🍒 Comandos para tener mas tiempo activo</strong> — el Bot</summary>
 
 > *Ejecutar estos comandos dentro de la carpeta YukiBot-MD*
-```bash
+```bash 
 termux-wake-lock && npm i -g pm2 && pm2 start index.js && pm2 save && pm2 logs 
 ``` 
 

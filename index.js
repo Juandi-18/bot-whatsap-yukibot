@@ -170,7 +170,7 @@ async function startBot() {
     version,
     logger,
     printQRInTerminal: false,
-    browser: Browsers.macOS('Chrome'),
+    browser: ['Ubuntu', 'Chrome', '20.0.04'], // ✅ SOLUCIÓN DEFINITIVA
     auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, logger) },
     markOnlineOnConnect: false,
     generateHighQualityLinkPreview: true,
@@ -178,8 +178,7 @@ async function startBot() {
     getMessage: async () => "",
     keepAliveIntervalMs: 45000,
     maxIdleTimeMs: 60000,
-    });
-
+  });
 // === CORRECCIÓN AQUÍ ===
 // Asegúrate de que no haya espacios extra o puntos raros antes de 'store'
     store.bind(sock.ev); 

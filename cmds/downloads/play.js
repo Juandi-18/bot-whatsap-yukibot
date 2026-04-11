@@ -1,11 +1,10 @@
-import ytdl from '@distube/ytdl-core'
+import axios from 'axios'
 import yts from 'yt-search'
 
 export default {
     command: ['playaudio', 'musica', 'ytmp3'],
     category: 'downloads',
     run: async (client, m, context) => {
-        // --- CAPTURA ROBUSTA DE ARGUMENTOS ---
         const text = context.text || (context.args ? context.args.join(' ') : null) || m.text || '';
         const usedPrefix = context.usedPrefix || '!';
         const command = context.command || 'playaudio';
@@ -19,39 +18,30 @@ export default {
             const video = search.videos[0];
             if (!video) return m.reply('《✧》 No encontré la canción.');
 
-            // Obtenemos info para el tamaño real del archivo
-            const info = await ytdl.getInfo(video.url);
-            const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
-            const size = (format.contentLength / (1024 * 1024)).toFixed(2);
+            // Usamos una API externa para evitar el bloqueo de YouTube "Sign in to confirm"
+            const res = await axios.get(`https://api.vreden.web.id/api/ytmp3?url=${video.url}`);
+            const downloadUrl = res.data.result.download.url;
+            const size = res.data.result.download.size;
 
-            // TU DISEÑO PERSONALIZADO
             const txt = `「✦」Descargando <${video.title}>\n\n` +
                         `> ✐ Canal » ${video.author.name}\n` +
                         `> ⴵ Duracion » ${video.timestamp}\n` +
                         `> ✰ Calidad: 128 kbps\n` +
-                        `> ❒ Tamaño » ${size}MB\n` +
+                        `> ❒ Tamaño » ${size}\n` +
                         `> 🜸 Link » ${video.url}`;
 
-            // Enviamos la miniatura con la info
             await client.sendMessage(m.chat, { image: { url: video.thumbnail }, caption: txt }, { quoted: m });
 
-            // Motor de descarga directa
-            const stream = ytdl(video.url, {
-                filter: 'audioonly',
-                quality: 'highestaudio',
-                highWaterMark: 1 << 25 // Buffer para evitar cortes
-            });
-
-            // Enviamos el audio directamente a WhatsApp
+            // Enviamos el audio
             await client.sendMessage(m.chat, { 
-                audio: { stream }, 
+                audio: { url: downloadUrl }, 
                 mimetype: 'audio/mp4', 
                 fileName: `${video.title}.mp3` 
             }, { quoted: m });
 
         } catch (e) {
             console.error(e);
-            m.reply('❌ Error al procesar la descarga. YouTube está bloqueando la conexión, intenta de nuevo en un momento.');
+            m.reply('❌ Error: Las APIs de descarga están saturadas. Intenta con otro nombre o más tarde.');
         }
     }
 }

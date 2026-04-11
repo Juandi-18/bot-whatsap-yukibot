@@ -51,26 +51,34 @@ export default {
 }
 
 async function tryMultipleAudioApis(ytUrl) {
-  // Lista de APIs de audio (MP3) de respaldo
   const endpoints = [
+    // Nuevas APIs con mayor tasa de éxito en 2026
+    { url: `https://api.alya-api.online/api/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.data?.url },
+    { url: `https://api.glowy.my.id/api/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.download },
     { url: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.data?.dl },
-    { url: `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.url },
-    { url: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.download?.url },
-    { url: `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.download_url }
+    { url: `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.url }
   ]
 
   for (const api of endpoints) {
     try {
-      console.log(`[Audio] Intentando descargar de: ${api.url}`)
-      const response = await fetch(api.url)
+      console.log(`[Audio] Intentando con motor: ${api.url.split('/')[2]}...`)
+      
+      const response = await fetch(api.url, {
+        method: 'GET',
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      })
+
       if (!response.ok) continue
       
       const data = await response.json()
       const link = api.extract(data)
       
-      if (link) return link
+      if (link && link.startsWith('http')) {
+        console.log(`✅ ¡Éxito! Audio encontrado.`)
+        return link
+      }
     } catch (err) {
-      console.log(`[Audio] Falló una API, probando la siguiente...`)
+      console.log(`❌ Fallo en API, probando siguiente...`)
       continue
     }
   }

@@ -2,60 +2,79 @@ import yts from 'yt-search'
 import fetch from 'node-fetch'
 import { getBuffer } from '../../core/message.js'
 
+const isYTUrl = (url) => /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i.test(url)
+async function getVideoInfo(query, videoMatch) {
+  const search = await yts(query)
+  if (!search.all.length) return null
+  const videoInfo = videoMatch ? search.videos.find(v => v.videoId === videoMatch[1]) || search.all[0] : search.all[0]
+  return videoInfo || null
+}
+
 export default {
-  command: ['play', 'mp3', 'ytmp3', 'playaudio'],
+  command: ['play', 'mp3', 'ytmp3', 'ytaudio', 'playaudio'],
   category: 'downloader',
-  run: async (client, m, context) => {
-    const text = context.text || m.text || (context.args ? context.args.join(' ') : '')
-    const usedPrefix = context.usedPrefix || '!'
-    const command = context.command || 'play'
-
-    const query = text.replace(usedPrefix + command, '').trim() || text
-    if (!query || query.length < 3) return m.reply(`《✧》Escribe el nombre de la canción.\nEjemplo: *${usedPrefix + command}* Lollipop`)
-
+  run: async (client, m, args, usedPrefix, command) => {
     try {
-      const search = await yts(query)
-      const video = search.videos[0]
-      if (!video) return m.reply('《✧》 No encontré resultados.')
+      if (!args[0]) {
+        return m.reply('《✧》Por favor, menciona el nombre o URL del video que deseas descargar')
+      }
+      const text = args.join(' ')
+      const videoMatch = text.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/)
+      const query = videoMatch ? 'https://youtu.be/' + videoMatch[1] : text
+      let url = query, title = null, thumbBuffer = null
+      try {
+        const videoInfo = await getVideoInfo(query, videoMatch)
+        if (videoInfo) {
+          url = videoInfo.url
+          title = videoInfo.title
+          thumbBuffer = await getBuffer(videoInfo.image)
+          const vistas = (videoInfo.views || 0).toLocaleString()
+          const canal = videoInfo.author?.name || 'Desconocido'
+          const infoMessage = `➩ Descargando › ${title}
 
-      const { title, thumbnail, timestamp, views, url } = video
-      const infoMessage = `➩ Descargando Audio › ${title}\n> ❖ Duración › *${timestamp}*\n> ❀ Vistas › *${views.toLocaleString()}*\n> ❒ Enlace › *${url}*`
-
-      await client.sendMessage(m.chat, { image: { url: thumbnail }, caption: infoMessage }, { quoted: m })
-
-      // Intentar con la lista de APIs más estables para Termux
-      const audioUrl = await tryStableApis(url)
-      
-      if (!audioUrl) return m.reply('《✧》 Todos los servidores están saturados. Intenta con un video más corto o prueba en unos minutos.')
-
-      const buffer = await getBuffer(audioUrl)
-      await client.sendMessage(m.chat, { 
-        audio: buffer, 
-        fileName: `${title}.mp3`, 
-        mimetype: 'audio/mpeg'
-      }, { quoted: m })
-
+> ❖ Canal › *${canal}*
+> ⴵ Duración › *${videoInfo.timestamp || 'Desconocido'}*
+> ❀ Vistas › *${vistas}*
+> ✩ Publicado › *${videoInfo.ago || 'Desconocido'}*
+> ❒ Enlace › *${url}*`
+          await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
+        }
+      } catch (err) {
+      }
+      const audio = await getAudioFromApis(url)
+      if (!audio?.url) {
+        return m.reply('《✧》 No se pudo descargar el *audio*, intenta más tarde.')
+      }
+      const audioBuffer = await getBuffer(audio.url)
+      await client.sendMessage(m.chat, { audio: audioBuffer, fileName: `${title || 'audio'}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
     } catch (e) {
-      m.reply(`> Error: ${e.message}`)
+      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }
 
-async function tryStableApis(ytUrl) {
-  const endpoints = [
-    { url: `https://api.lulu-web.xyz/api/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.download },
-    { url: `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.download_url },
-    { url: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.data?.dl },
-    { url: `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`, extract: res => res.result?.url }
+async function getAudioFromApis(url) {
+  const apis = [
+    { api: 'Axi', endpoint: `${global.APIs.axi.url}/down/ytaudio?url=${encodeURIComponent(url)}`, extractor: res => res?.resultado?.url_dl },    
+    { api: 'Ootaizumi', endpoint: `${global.APIs.ootaizumi.url}/downloader/youtube/play?query=${encodeURIComponent(url)}`, extractor: res => res.result?.download },
+    { api: 'Vreden', endpoint: `${global.APIs.vreden.url}/api/v1/download/youtube/audio?url=${encodeURIComponent(url)}&quality=256`, extractor: res => res.result?.download?.url },
+    { api: 'Stellar', endpoint: `${global.APIs.stellar.url}/dl/ytdl?url=${encodeURIComponent(url)}&format=mp3&key=${global.APIs.stellar.key}`, extractor: res => res.result?.download },
+    { api: 'Ootaizumi v2', endpoint: `${global.APIs.ootaizumi.url}/downloader/youtube?url=${encodeURIComponent(url)}&format=mp3`, extractor: res => res.result?.download },
+    { api: 'Vreden v2', endpoint: `${global.APIs.vreden.url}/api/v1/download/play/audio?query=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url },
+    { api: 'Nekolabs', endpoint: `${global.APIs.nekolabs.url}/downloader/youtube/v1?url=${encodeURIComponent(url)}&format=mp3`, extractor: res => res.result?.downloadUrl },
+    { api: 'Nekolabs v2', endpoint: `${global.APIs.nekolabs.url}/downloader/youtube/play/v1?q=${encodeURIComponent(url)}`, extractor: res => res.result?.downloadUrl }
   ]
 
-  for (const api of endpoints) {
+  for (const { api, endpoint, extractor } of apis) {
     try {
-      console.log(`[Audio] Probando motor: ${api.url.split('/')[2]}`)
-      const res = await fetch(api.url).then(r => r.json())
-      const link = api.extract(res)
-      if (link) return link
-    } catch { continue }
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10000)
+      const res = await fetch(endpoint, { signal: controller.signal }).then(r => r.json())
+      clearTimeout(timeout)
+      const link = extractor(res)
+      if (link) return { url: link, api }
+    } catch (e) {}
+    await new Promise(resolve => setTimeout(resolve, 500))
   }
   return null
 }

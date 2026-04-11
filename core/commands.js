@@ -225,7 +225,7 @@ utils: `\n» ˚୨•(=^●ω●^=)• ⊹ \`UTILITIES\` ⊹
 > Ver el menú de comandos por categoría.
 ꕤ \`$prefixbots\` » \`$prefixsockets\`
 > Ver el número de bots activos en el sistema.
-ꕤ \`$prefixclean\` » \`$prefixborrar\` » \`$prefixdel\`
+ꕤ \`$prefixdel\`+ <cantidad>
 > Borra una cantidad específica de mensajes.
 ꕤ \`$prefixstatus\` » \`$prefixestado\`
 > Ver el estado actual y salud del bot.

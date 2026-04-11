@@ -76,9 +76,11 @@ export default {
   }
 }
 
+// ... (todo el código de arriba se queda igual)
+
 async function getVideoFromApis(url) {
-  // He actualizado los endpoints a los que están funcionando actualmente (Abril 2026)
   const apis = [
+    { api: 'D-AS', endpoint: `https://api.d-as.my.id/api/download/ytmp4?url=${encodeURIComponent(url)}`, extractor: res => res.result?.url },
     { api: 'Zenkey', endpoint: `https://api.zenkey.my.id/api/download/ytmp4?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download_url },
     { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp4?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl },
     { api: 'Axi_New', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp4?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url }
@@ -86,18 +88,24 @@ async function getVideoFromApis(url) {
 
   for (const { api, endpoint, extractor } of apis) {
     try {
+      console.log(`Intentando con motor: ${api}...`) // Esto aparecerá en tu terminal negra
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 15000) // 15 seg para videos
-      const res = await fetch(endpoint, { signal: controller.signal }).then(r => r.json())
+      const timeout = setTimeout(() => controller.abort(), 20000) 
+      
+      const res = await fetch(endpoint, { 
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0' } 
+      }).then(r => r.json())
+      
       clearTimeout(timeout)
       
       const link = extractor(res)
       if (link) {
-        console.log(`Video descargado con: ${api}`)
+        console.log(`✅ ¡Éxito! Video obtenido con ${api}`)
         return { url: link, api }
       }
     } catch (e) {
-      console.log(`Fallo en API ${api}, saltando...`)
+      console.log(`❌ ${api} falló, buscando siguiente...`)
     }
   }
   return null

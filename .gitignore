@@ -1,5 +1,4 @@
-node_modules
-session
-auth_info_baileys
-*.json
-!package.json
+Sessions/Owner/
+yuki_store.json
+database.json
+node_modules/

@@ -33,7 +33,7 @@
       "name": "Juandi",
       "exp": 23,
       "level": 2,
-      "usedcommands": 75,
+      "usedcommands": 78,
       "pasatiempo": "",
       "description": "",
       "marry": "",
@@ -1876,8 +1876,8 @@
               "cmds": 3
             },
             "2026-04-10": {
-              "msgs": 44,
-              "cmds": 35
+              "msgs": 49,
+              "cmds": 38
             }
           },
           "usedTime": "2026-04-09T21:09:01.128Z",
@@ -3203,7 +3203,7 @@
         "573108615379@s.whatsapp.net": {
           "stats": {
             "2026-04-10": {
-              "msgs": 14,
+              "msgs": 15,
               "cmds": 0
             }
           },

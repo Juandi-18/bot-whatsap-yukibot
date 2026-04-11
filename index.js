@@ -1,7 +1,7 @@
 import "./settings.js";
 import main from './main.js';
 import events from './cmds/events.js';
-import { Browsers, makeWASocket, makeCacheableSignalKeyStore, useMultiFileAuthState, fetchLatestBaileysVersion, jidDecode, DisconnectReason } from "@whiskeysockets/baileys";
+import { Browsers, makeWASocket, makeCacheableSignalKeyStore, useMultiFileAuthState, fetchLatestBaileysVersion, jidDecode, DisconnectReason, makeInMemoryStore } from "@whiskeysockets/baileys";
 import cfonts from 'cfonts';
 import pino from "pino";
 import qrcode from "qrcode-terminal";
@@ -15,6 +15,13 @@ import db from "./core/system/database.js";
 import { startSubBot } from './core/subs.js';
 import { exec } from "child_process";
 
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
+// Esto intenta leer el historial guardado si el bot se reinicia
+if (fs.existsSync('./yuki_store.json')) store.readFromFile('./yuki_store.json');
+// Guarda el historial automáticamente cada 10 segundos
+setInterval(() => {
+    store.writeToFile('./yuki_store.json');
+}, 10000);
 const log = {
   info: (msg) => console.log(chalk.bgBlue.white.bold(`INFO`), chalk.white(msg)),
   success: (msg) => console.log(chalk.bgGreen.white.bold(`SUCCESS`), chalk.greenBright(msg)),
@@ -171,6 +178,8 @@ async function startBot() {
     getMessage: async () => "",
     keepAliveIntervalMs: 45000,
     maxIdleTimeMs: 60000,
+    store.bind(sock.ev); // Vincula los eventos (mensajes, contactos, etc.) al store
+    sock.store = store;
   });
   global.client = sock;
   sock.isInit = false;

@@ -4,18 +4,21 @@ import yts from 'yt-search'
 export default {
     command: ['playaudio', 'musica', 'ytmp3'],
     category: 'downloads',
-    run: async (client, m, { text, usedPrefix, command }) => {
-        if (!text) return m.reply(`《✧》 ¿Que canción quieres escuchar?\nEjemplo: *${usedPrefix + command}* Inmortal - Aventura`)
+    run: async (client, m, { text, args, usedPrefix, command }) => {
+        // Usamos text o args.join para capturar lo que el usuario escribió
+        const q = text || args.join(' ')
+        
+        if (!q) return m.reply(`《✧》 ¿Que canción quieres escuchar?\nEjemplo: *${usedPrefix + command}* Inmortal - Aventura`)
 
         try {
-            const search = await yts(text)
+            const search = await yts(q)
             const video = search.videos[0]
             if (!video) return m.reply('《✧》 No encontré la canción.')
 
-            // Obtenemos info del video para el tamaño (aproximado)
+            // ... (el resto del código de envío de imagen y audio queda igual)
             const info = await ytdl.getInfo(video.url)
             const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' })
-            const size = (format.contentLength / (1024 * 1024)).toFixed(2) // Tamaño en MB
+            const size = (format.contentLength / (1024 * 1024)).toFixed(2)
 
             const txt = `「✦」Descargando <${video.title}>\n\n` +
                         `> ✐ Canal » ${video.author.name}\n` +

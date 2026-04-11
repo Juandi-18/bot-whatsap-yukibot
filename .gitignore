@@ -1,4 +1,28 @@
+# --- SEGURIDAD (Archivos privados) ---
+# Ignora la sesión de WhatsApp para que nadie robe tu cuenta
+Sessions/
 Sessions/Owner/
-yuki_store.json
+auth_info_baileys/
+creds.json
+
+# --- DATOS Y LOGS ---
+# Ignora las bases de datos locales
+*.json
+!package.json
 database.json
+yuki_store.json
+
+# Archivos de registro de errores
+*.log
+npm-debug.log*
+
+# --- DEPENDENCIAS ---
+# Nunca subas esta carpeta, es muy pesada y se genera con npm install
 node_modules/
+
+# --- CONFIGURACIÓN DE ENTORNO ---
+.env
+
+# --- ARCHIVOS DE SISTEMA ---
+.DS_Store
+Thumbs.db

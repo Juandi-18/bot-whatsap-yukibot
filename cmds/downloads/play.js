@@ -78,28 +78,34 @@ export default {
   }
 }
 
-// APIs ACTUALIZADAS A ABRIL 2026
 async function getAudioFromApis(url) {
   const apis = [
+    { api: 'D-AS', endpoint: `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.url },
     { api: 'Zenkey', endpoint: `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download_url },
     { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl },
-    { api: 'Axi New', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url }
+    { api: 'Axi_New', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url }
   ]
 
   for (const { api, endpoint, extractor } of apis) {
     try {
+      console.log(`[Audio] Intentando con: ${api}...`)
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 12000)
-      const res = await fetch(endpoint, { signal: controller.signal }).then(r => r.json())
+      const timeout = setTimeout(() => controller.abort(), 15000) // 15 seg para audio
+      
+      const res = await fetch(endpoint, { 
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0' } 
+      }).then(r => r.json())
+      
       clearTimeout(timeout)
       
       const link = extractor(res)
       if (link) {
-        console.log(`Descargado con éxito vía: ${api}`)
+        console.log(`✅ ¡Audio obtenido con éxito via ${api}!`)
         return { url: link, api }
       }
     } catch (e) {
-      console.log(`Fallo en API ${api}, intentando siguiente...`)
+      console.log(`❌ ${api} falló, probando la siguiente API...`)
     }
   }
   return null

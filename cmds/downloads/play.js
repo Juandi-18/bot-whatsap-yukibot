@@ -1,74 +1,106 @@
 import yts from 'yt-search'
-import axios from 'axios'
+import fetch from 'node-fetch'
 import { getBuffer } from '../../core/message.js'
 
-export default {
-    command: ['playaudio', 'musica', 'ytmp3'],
-    category: 'downloads',
-    run: async (client, m, context) => {
-        // --- CAPTURA SEGURA DE ARGUMENTOS ---
-        const text = context.text || (context.args ? context.args.join(' ') : null) || m.text || '';
-        const usedPrefix = context.usedPrefix || '!';
-        const command = context.command || 'playaudio';
+const isYTUrl = (url) => /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i.test(url)
 
-        if (!text || text.trim().length === 0) {
-            return m.reply(`《✧》 ¿Qué canción quieres escuchar?\nEjemplo: *${usedPrefix + command}* Inmortal - Aventura`);
-        }
-
-        try {
-            const search = await yts(text);
-            const video = search.videos[0];
-            if (!video) return m.reply('《✧》 No encontré resultados.');
-
-            const url = video.url;
-            
-            // 1. Buscamos el link de descarga en las APIs
-            const data = await getAudioFromApis(url);
-            
-            if (!data) {
-                return m.reply('❌ No se pudo obtener el enlace de descarga. Todas las APIs están saturadas.');
-            }
-
-            // 2. Diseño Personalizado
-            const infoMessage = `「✦」Descargando <${video.title}>\n\n` +
-                                `> ✐ Canal » ${video.author.name}\n` +
-                                `> ⴵ Duración » ${video.timestamp}\n` +
-                                `> ✰ Calidad: 128 kbps\n` +
-                                `> ❒ Tamaño » ${data.size || 'Desconocido'}\n` +
-                                `> 🜸 Link » ${url}`;
-
-            await client.sendMessage(m.chat, { image: { url: video.thumbnail }, caption: infoMessage }, { quoted: m });
-
-            // 3. Envío del Audio
-            await client.sendMessage(m.chat, { 
-                audio: { url: data.url }, 
-                mimetype: 'audio/mp4', 
-                fileName: `${video.title}.mp3` 
-            }, { quoted: m });
-
-        } catch (e) {
-            console.error(e);
-            m.reply('❌ Error inesperado al procesar la solicitud.');
-        }
-    }
+async function getVideoInfo(query, videoMatch) {
+  const search = await yts(query)
+  if (!search.all.length) return null
+  const videoInfo = videoMatch ? search.videos.find(v => v.videoId === videoMatch[1]) || search.all[0] : search.all[0]
+  return videoInfo || null
 }
 
-// Función con múltiples APIs (tu método anterior mejorado)
-async function getAudioFromApis(url) {
-    const apis = [
-        { name: 'Axi', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.result?.download?.url },
-        { name: 'Vreden', endpoint: `https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.result?.download?.url },
-        { name: 'YTDL', endpoint: `https://api.caliph.biz.id/api/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.result?.url }
-    ];
+export default {
+  command: ['play', 'mp3', 'ytmp3', 'ytaudio', 'playaudio'],
+  category: 'downloader',
+  run: async (client, m, context) => { // Cambiado para recibir context
+    try {
+      // --- FIX DE ARGUMENTOS ---
+      // Esto asegura que 'lolipop' sea leído sin importar la versión del bot
+      const args = context.args || []
+      const text = context.text || (args.length > 0 ? args.join(' ') : null) || m.text || ''
+      const usedPrefix = context.usedPrefix || '!'
+      const command = context.command || 'play'
 
-    for (const api of apis) {
-        try {
-            const res = await axios.get(api.endpoint, { timeout: 10000 });
-            const downloadUrl = api.extractor(res);
-            if (downloadUrl) return { url: downloadUrl, size: res.data?.result?.download?.size || null };
-        } catch (e) {
-            console.log(`API ${api.name} falló, intentando siguiente...`);
+      if (!text || text.trim().length === 0) {
+        return m.reply(`《✧》Por favor, menciona el nombre o URL del video que deseas descargar\nEjemplo: *${usedPrefix + command}* Lolipop`)
+      }
+
+      const videoMatch = text.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/)
+      const query = videoMatch ? 'https://youtu.be/' + videoMatch[1] : text
+      let url = query, title = null, thumbBuffer = null
+
+      try {
+        const videoInfo = await getVideoInfo(query, videoMatch)
+        if (videoInfo) {
+          url = videoInfo.url
+          title = videoInfo.title
+          thumbBuffer = await getBuffer(videoInfo.image)
+          const vistas = (videoInfo.views || 0).toLocaleString()
+          const canal = videoInfo.author?.name || 'Desconocido'
+          
+          // Mantenemos tu estética original
+          const infoMessage = `➩ Descargando › ${title}
+
+> ❖ Canal › *${canal}*
+> ⴵ Duración › *${videoInfo.timestamp || 'Desconocido'}*
+> ❀ Vistas › *${vistas}*
+> ✩ Publicado › *${videoInfo.ago || 'Desconocido'}*
+> ❒ Enlace › *${url}*`
+          
+          await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
         }
+      } catch (err) {
+        console.error("Error en videoInfo:", err)
+      }
+
+      // --- LLAMADA A LAS APIS ACTUALIZADAS ---
+      const audio = await getAudioFromApis(url)
+      
+      if (!audio?.url) {
+        return m.reply('《✧》 No se pudo descargar el *audio*, las APIs están saturadas. Intenta más tarde.')
+      }
+
+      // Descargamos el buffer del audio final
+      const audioBuffer = await getBuffer(audio.url)
+      
+      await client.sendMessage(m.chat, { 
+        audio: audioBuffer, 
+        fileName: `${title || 'audio'}.mp3`, 
+        mimetype: 'audio/mpeg' 
+      }, { quoted: m })
+
+    } catch (e) {
+      console.error(e)
+      await m.reply(`> Ocurrió un error inesperado.\n> [Error: *${e.message}*]`)
     }
-    return null;
+  }
+}
+
+// APIs ACTUALIZADAS A ABRIL 2026
+async function getAudioFromApis(url) {
+  const apis = [
+    { api: 'Zenkey', endpoint: `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download_url },
+    { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl },
+    { api: 'Axi New', endpoint: `https://dark-shan-yt.vercel.app/api/download/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.result?.download?.url }
+  ]
+
+  for (const { api, endpoint, extractor } of apis) {
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 12000)
+      const res = await fetch(endpoint, { signal: controller.signal }).then(r => r.json())
+      clearTimeout(timeout)
+      
+      const link = extractor(res)
+      if (link) {
+        console.log(`Descargado con éxito vía: ${api}`)
+        return { url: link, api }
+      }
+    } catch (e) {
+      console.log(`Fallo en API ${api}, intentando siguiente...`)
+    }
+  }
+  return null
 }

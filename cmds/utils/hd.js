@@ -1,21 +1,23 @@
 import crypto from 'crypto'
-import { fileTypeFromBuffer } from 'file-type' // Corregido: eliminado el doble import
+import pkg from 'file-type'
 import { promises as fsp } from 'fs'
 import os from 'os'
 import path from 'path'
 import { spawn } from 'child_process'
-import fetch from 'node-fetch' // Asegúrate de tener node-fetch instalado
+import fetch from 'node-fetch'
+
+const { fileTypeFromBuffer } = pkg
 
 export default {
   command: ['hd', 'enhance', 'remini'],
   category: 'utils',
-  run: async (client, m, args, usedPrefix, command) => {
+  run: async (client, m, { usedPrefix, command }) => {
     try {
       const q = m.quoted || m
       const mime = q?.mimetype || q?.msg?.mimetype || ''
 
       if (!mime) return m.reply(`《✧》 Responde a una *imagen* con:\n${usedPrefix + command}`)
-      if (!/^image\/(jpe?g|png|webp)$/i.test(mime)) return m.reply(`《✧》 El formato *${mime || 'desconocido'}* no es compatible`)
+      if (!/^image\/(jpe?g|png|webp)$/i.test(mime)) return m.reply(`《✧》 El formato *${mime}* no es compatible`)
 
       const buffer = await q.download?.()
       if (!buffer || !Buffer.isBuffer(buffer) || buffer.length < 10) return m.reply('《✧》 No se pudo descargar la imagen')
@@ -30,7 +32,7 @@ export default {
         return m.reply(`《✧》 No se pudo *mejorar* la imagen (${msg})`)
       }
 
-      await client.sendMessage(m.chat, { image: result.buffer, caption: '✅ Imagen mejorada con éxito' }, { quoted: m })
+      await client.sendMessage(m.chat, { image: result.buffer, caption: '✅ *Imagen mejorada con éxito*' }, { quoted: m })
     } catch (e) {
       console.error(e)
       await m.reply(`❌ Error: ${e.message}`)

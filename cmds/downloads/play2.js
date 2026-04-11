@@ -3,65 +3,41 @@ import fetch from 'node-fetch'
 import { getBuffer } from '../../core/message.js'
 
 export default {
-  command: ['play2', 'mp4', 'ytmp4', 'ytvideo', 'playvideo'],
+  command: ['play', 'mp3', 'ytmp3', 'playaudio'],
   category: 'downloader',
-  run: async (client, m, { text, args, usedPrefix, command }) => {
-    try {
-      // 1. Captura de texto (Evita el error de "NaN" y "menciona el nombre")
-      const q = text || (args && args.length > 0 ? args.join(' ') : null)
-      if (!q) return m.reply(`《✧》Por favor, menciona el nombre o URL del video.\nEjemplo: *${usedPrefix + command}* Lolipop Remix`)
+  run: async (client, m, context) => {
+    // Esta línea asegura que el bot lea el texto sin importar cómo lo envíe tu sistema
+    const text = context.text || m.text || (context.args ? context.args.join(' ') : '')
+    const usedPrefix = context.usedPrefix || '!'
+    const command = context.command || 'play'
 
-      // 2. Búsqueda en YouTube
-      const search = await yts(q)
+    if (!text || text.includes(command)) {
+      // Si el texto está vacío o solo contiene el comando, pedimos el nombre
+      const searchTag = text.replace(usedPrefix + command, '').trim()
+      if (!searchTag) return m.reply(`《✧》Por favor, menciona el nombre o URL.\nEjemplo: *${usedPrefix + command}* Lolipop`)
+    }
+
+    try {
+      const search = await yts(text)
       const video = search.videos[0]
       if (!video) return m.reply('《✧》 No se encontró el video.')
 
       const { title, thumbnail, timestamp, views, ago, url } = video
-      
-      // 3. Mensaje informativo previo
-      const infoMessage = `➩ Descargando Video › ${title}
-> ❖ Duración › *${timestamp}*
-> ❀ Vistas › *${views.toLocaleString()}*
-> ✩ Publicado › *${ago}*
-> ❒ Enlace › *${url}*`
+      const infoMessage = `➩ Descargando › ${title}\n> ❖ Duración › *${timestamp}*\n> ❀ Vistas › *${views.toLocaleString()}*\n> ✩ Publicado › *${ago}*\n> ❒ Enlace › *${url}*`
 
       await client.sendMessage(m.chat, { image: { url: thumbnail }, caption: infoMessage }, { quoted: m })
 
-      // 4. Obtención del enlace de descarga (MP4)
-      const videoUrl = await getVideoUrl(url)
-      if (!videoUrl) return m.reply('《✧》 No se pudo obtener el video. Los servidores externos están saturados.')
+      // Descarga usando API externa
+      const res = await fetch(`https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`).then(r => r.json())
+      const downloadUrl = res.result?.download_url || res.data?.dl
 
-      // 5. Envío del video (Usamos URL directa para no saturar la RAM de tu Codespace)
-      await client.sendMessage(m.chat, { 
-        video: { url: videoUrl }, 
-        fileName: `${title}.mp4`, 
-        mimetype: 'video/mp4',
-        caption: `✨ Aquí tienes tu video: *${title}*`
-      }, { quoted: m })
+      if (!downloadUrl) return m.reply('《✧》 El servidor de descarga no respondió. Intenta más tarde.')
+
+      const buffer = await getBuffer(downloadUrl)
+      await client.sendMessage(m.chat, { audio: buffer, fileName: `${title}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
 
     } catch (e) {
-      console.error(e)
-      m.reply(`> Error inesperado en video: ${e.message}`)
+      m.reply(`> Error: ${e.message}`)
     }
   }
-}
-
-// Motores de descarga MP4 actualizados para saltar bloqueos de Codespaces
-async function getVideoUrl(ytUrl) {
-  const apis = [
-    `https://api.zenkey.my.id/api/download/ytmp4?url=${encodeURIComponent(ytUrl)}`,
-    `https://api.siputzx.my.id/api/d/ytmp4?url=${encodeURIComponent(ytUrl)}`,
-    `https://api.d-as.my.id/api/download/ytmp4?url=${encodeURIComponent(ytUrl)}`
-  ]
-
-  for (const api of apis) {
-    try {
-      const res = await fetch(api).then(r => r.json())
-      const link = res.result?.download_url || res.data?.dl || res.result?.url
-      if (link) return link
-    } catch (e) {
-      continue
-    }
-  }
-  return null
 }

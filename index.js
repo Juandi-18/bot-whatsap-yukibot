@@ -178,12 +178,16 @@ async function startBot() {
     getMessage: async () => "",
     keepAliveIntervalMs: 45000,
     maxIdleTimeMs: 60000,
-    store.bind(sock.ev); // Vincula los eventos (mensajes, contactos, etc.) al store
+    });
+
+// === CORRECCIÓN AQUÍ ===
+// Asegúrate de que no haya espacios extra o puntos raros antes de 'store'
+    store.bind(sock.ev); 
     sock.store = store;
-  });
-  global.client = sock;
-  sock.isInit = false;
-  sock.ev.on("creds.update", saveCreds);
+    
+    global.client = sock;
+    sock.isInit = false;
+    sock.ev.on("creds.update", saveCreds);
 
   if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
     setTimeout(async () => {

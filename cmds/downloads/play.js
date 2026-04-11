@@ -2,102 +2,64 @@ import yts from 'yt-search'
 import fetch from 'node-fetch'
 import { getBuffer } from '../../core/message.js'
 
-const isYTUrl = (url) => /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i.test(url)
-
-async function getVideoInfo(query, videoMatch) {
-  const search = await yts(query)
-  if (!search.all.length) return null
-  const videoInfo = videoMatch ? search.videos.find(v => v.videoId === videoMatch[1]) || search.all[0] : search.all[0]
-  return videoInfo || null
-}
-
 export default {
-  command: ['play', 'mp3', 'ytmp3', 'ytaudio', 'playaudio'],
+  command: ['play', 'mp3', 'ytmp3', 'playaudio'],
   category: 'downloader',
-  run: async (client, m, context) => { // Cambiado a context para mayor estabilidad en YukiBot
+  run: async (client, m, { text, args, usedPrefix, command }) => {
     try {
-      const args = context.args || []
-      const text = context.text || (args.length > 0 ? args.join(' ') : null) || m.text || ''
-      const usedPrefix = context.usedPrefix || '!'
-      const command = context.command || 'play'
+      // 1. Verificación de texto (Fix para el error de "NaN")
+      const q = text || (args && args.length > 0 ? args.join(' ') : null)
+      if (!q) return m.reply(`《✧》Por favor, menciona el nombre o URL.\nEjemplo: *${usedPrefix + command}* Lolipop`)
 
-      if (!text || text.trim().length === 0) {
-        return m.reply(`《✧》Por favor, menciona el nombre o URL del video que deseas descargar`)
-      }
+      // 2. Búsqueda en YouTube
+      const search = await yts(q)
+      const video = search.videos[0]
+      if (!video) return m.reply('《✧》 No se encontró el video.')
 
-      const videoMatch = text.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/))([a-zA-Z0-9_-]{11})/)
-      const query = videoMatch ? 'https://youtu.be/' + videoMatch[1] : text
-      let url = query, title = null, thumbBuffer = null
-
-      try {
-        const videoInfo = await getVideoInfo(query, videoMatch)
-        if (videoInfo) {
-          url = videoInfo.url
-          title = videoInfo.title
-          thumbBuffer = await getBuffer(videoInfo.image)
-          const vistas = (videoInfo.views || 0).toLocaleString()
-          const canal = videoInfo.author?.name || 'Desconocido'
-          
-          const infoMessage = `➩ Descargando › ${title}
-
-> ❖ Canal › *${canal}*
-> ⴵ Duración › *${videoInfo.timestamp || 'Desconocido'}*
-> ❀ Vistas › *${vistas}*
-> ✩ Publicado › *${videoInfo.ago || 'Desconocido'}*
+      const { title, thumbnail, timestamp, views, ago, url } = video
+      
+      // 3. Mensaje de información (Manteniendo tu estética)
+      const infoMessage = `➩ Descargando › ${title}
+> ❖ Duración › *${timestamp}*
+> ❀ Vistas › *${views.toLocaleString()}*
+> ✩ Publicado › *${ago}*
 > ❒ Enlace › *${url}*`
-          
-          await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
-        }
-      } catch (err) { }
 
-      // --- MOTOR DE DESCARGA ACTUALIZADO ---
-      const audio = await getAudioFromApis(url)
-      
-      if (!audio?.url) {
-        return m.reply('《✧》 No se pudo descargar el *audio*. Intenta con otro nombre o un video más corto.')
-      }
+      await client.sendMessage(m.chat, { image: { url: thumbnail }, caption: infoMessage }, { quoted: m })
 
-      // Descarga del buffer con manejo de errores
-      const audioBuffer = await getBuffer(audio.url)
-      
+      // 4. Descarga usando API Externa (Para saltar el bloqueo de Codespaces)
+      const audioUrl = await getAudioUrl(url)
+      if (!audioUrl) return m.reply('《✧》 No se pudo obtener el audio, intenta con otro nombre.')
+
+      const buffer = await getBuffer(audioUrl)
       await client.sendMessage(m.chat, { 
-        audio: audioBuffer, 
-        fileName: `${title || 'audio'}.mp3`, 
+        audio: buffer, 
+        fileName: `${title}.mp3`, 
         mimetype: 'audio/mpeg' 
       }, { quoted: m })
 
     } catch (e) {
-      await m.reply(`> Error en *${usedPrefix + command}*.\n> [Error: *${e.message}*]`)
+      console.error(e)
+      m.reply(`> Error inesperado: ${e.message}`)
     }
   }
 }
 
-async function getAudioFromApis(url) {
-  // APIs probadas que funcionan con proxies para evitar el bloqueo de Codespaces
+// Función con APIs externas que funcionan hoy
+async function getAudioUrl(ytUrl) {
   const apis = [
-    { api: 'Pop-API', endpoint: `https://api.popcat.xyz/itunes?q=${encodeURIComponent(url)}`, extractor: res => res[0]?.preview }, // Alternativa rápida
-    { api: 'Cobalt', endpoint: `https://cobalt.sh/api/json`, method: 'POST', body: { url, downloadMode: 'audio' }, extractor: res => res.url },
-    { api: 'Siputzx', endpoint: `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(url)}`, extractor: res => res.data?.dl }
+    `https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`,
+    `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(ytUrl)}`,
+    `https://api.d-as.my.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}`
   ]
 
-  for (const { api, endpoint, method, body, extractor } of apis) {
+  for (const api of apis) {
     try {
-      console.log(`[Audio] Intentando con: ${api}...`)
-      const options = {
-        method: method || 'GET',
-        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-        body: body ? JSON.stringify(body) : null
-      }
-      
-      const res = await fetch(endpoint, options).then(r => r.json())
-      const link = extractor(res)
-      
-      if (link) {
-        console.log(`✅ ¡Audio conseguido con ${api}!`)
-        return { url: link, api }
-      }
+      const res = await fetch(api).then(r => r.json())
+      const link = res.result?.download_url || res.data?.dl || res.result?.url
+      if (link) return link
     } catch (e) {
-      console.log(`❌ ${api} falló.`)
+      continue
     }
   }
   return null

@@ -1,34 +1,45 @@
 import yts from 'yt-search';
-import {getBuffer} from '../../core/message.js';
+import { getBuffer } from '../../core/message.js';
 
 export default {
-  command: ['ytsearch', 'search'],
-  category: 'internet',
-  run: async (client, m, args) => {
-    if (!args || !args[0]) {
-      return m.reply('《✧》 Por favor, Ingrese el título de un vídeo.')
-    }
-    const ress = await yts(`${args[0]}`)
-    const armar = ress.all
-    const Ibuff = await getBuffer(armar[0].image)
-    let teks2 = armar.map((v) => {
-        switch (v.type) {
-          case 'video':
-            return `➩ *Título ›* *${v.title}* 
+    command: ['ytsearch', 'search', 'yts'],
+    category: 'internet',
+    run: async (client, m, { text, usedPrefix, command }) => {
+        if (!text) return m.reply(`《✧》 Por favor, ingresa el título de un video o canal.\nEjemplo: *${usedPrefix + command}* Inmortal Aventura`);
 
-> ⴵ *Duración ›* ${v.timestamp}
-> ❖ *Subido ›* ${v.ago}
-> ✿ *Vistas ›* ${v.views}
-> ❒ *Url ›* ${v.url}`.trim()
-          case 'channel':
-            return `
-> ❖ Canal › *${v.name}*
-> ❒ Url › ${v.url}
-> ❀ Subscriptores › ${v.subCountLabel} (${v.subCount})
-> ✿ Videos totales › ${v.videoCount}`.trim()
-        }}).filter((v) => v).join('\n\n╾۪〬─ ┄۫╌ ׄ┄┈۪ ─〬 ׅ┄╌ ۫┈ ─ׄ─۪〬 ┈ ┄۫╌ ┈┄۪ ─ׄ〬╼\n\n')
-    client.sendMessage(m.chat, { image: Ibuff, caption: teks2 }, { quoted: m }).catch((e) => {
-      m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
-    })
-  },
+        try {
+            const search = await yts(text);
+            const results = search.all.slice(0, 5); // Mostramos solo los primeros 5 para no saturar
+            
+            if (results.length === 0) return m.reply('《✧》 No encontré resultados para tu búsqueda.');
+
+            const firstImage = await getBuffer(results[0].image);
+
+            let teks2 = results.map((v) => {
+                if (v.type === 'video') {
+                    return `「✦」 VIDEO: <${v.title}>\n\n` +
+                           `> ✐ Canal » ${v.author.name}\n` +
+                           `> ⴵ Duración » ${v.timestamp}\n` +
+                           `> ✿ Vistas » ${v.views}\n` +
+                           `> 🜸 Link » ${v.url}`;
+                } else if (v.type === 'channel') {
+                    return `「✦」 CANAL: <${v.name}>\n\n` +
+                           `> ❀ Subs » ${v.subCountLabel}\n` +
+                           `> ✿ Videos » ${v.videoCount}\n` +
+                           `> 🜸 Link » ${v.url}`;
+                }
+            }).filter((v) => v).join('\n\n╾۪〬─ ┄۫╌ ׄ┄┈۪ ─〬 ׅ┄╌ ۫┈ ─ׄ─۪〬 ┈ ┄۫╌ ┈┄۪ ─ׄ〬╼\n\n');
+
+            const header = `✨ *RESULTADOS DE BÚSQUEDA* ✨\n\n`;
+
+            await client.sendMessage(m.chat, { 
+                image: firstImage, 
+                caption: header + teks2 
+            }, { quoted: m });
+
+        } catch (e) {
+            console.error(e);
+            m.reply(`❌ Ocurrió un error al buscar: ${e.message}`);
+        }
+    },
 };

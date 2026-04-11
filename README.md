@@ -12,84 +12,56 @@
 
 ## 🪾 Descripción 
 
-Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofrece una variedad de características para mejorar tu experiencia en WhatsApp.
+# 🪾 YukiBot-MD 
+> **Este proyecto está en constante evolución. Estamos comprometidos en ofrecer a nuestra comunidad un Bot increíble. Te invitamos a instalarlo para estar al tanto de todas las novedades. [¡Únete a nuestro nuevo canal!](https://stellarwa.xyz/channel/yuki)**
+
+<p align="center"> 
+<img src="https://iili.io/qpPn1K7.gif" alt="YukiBot-MD" style="width: 75%; height: auto; max-width: 100px;">
+
+<p align="center"> 
+<a href="#"><img title="YukiBot-MD" src="https://img.shields.io/badge/¡Disfruta de un Bot totalmente gratuito, con múltiples funciones y de código abierto! -purple?colorA=%239b33b0&colorB=%231c007b&style=for-the-badge"></a> 
+</p>
+
+---
+
+## 🪾 Descripción 
+
+Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofrece una variedad de características para mejorar tu experiencia en WhatsApp, optimizado para ser ligero y eficiente.
 
 ---
 
 ## 🥦 Características
 
-- Comandos Gacha (Y más juegos)
-- Comandos de economia
-- Respuestas automáticas
-- Gestión de grupos
-- Integración con APIs externas
+- **Comandos Gacha:** Juegos interactivos y de azar.
+- **Economía:** Sistema de niveles, bancos y monedas.
+- **Gestión de Grupos:** Herramientas completas para administradores.
+- **Multimedia:** Descarga de música (MP3) y video (MP4) de YouTube con múltiples APIs de respaldo.
+- **IA Integrada:** Respuestas inteligentes y generación de contenido.
 
 ---
 
-## Información Importante
+## 🍒 Instalación en Termux (Recomendado)
 
-Evita completamente usar forks, mods o versiones alteradas de Baileys.
-No utilices “baileys mods” ni variantes no oficiales.
-Siempre usa la librería principal y oficial de Baileys.
-
----
-
-### Instalaciónes Básicas
-
-<details>
-<summary><strong>🍒 Cloud</strong> — Shell</summary>
+> [!TIP]
+> Esta es la mejor opción para evitar bloqueos de IP de YouTube y asegurar que los comandos de descarga funcionen siempre.
 
 ```bash
-git clone https://github.com/iamDestroy/YukiBot-MD
-```
-
-```bash
-cd YukiBot-MD
-```
-
-```bash
-yarn install
-```
-
-```bash
-npm install
-```
-
-```bash
-npm start
-```
-
-</details>
-
-<details>
-<summary><strong>🍒 Termux</strong> — Manualmente</summary>
-
-```bash
+# 1. Permisos de almacenamiento
 termux-setup-storage
-```
-```bash
-apt update && apt upgrade && pkg install -y git nodejs ffmpeg imagemagick yarn
-```
 
-```bash
-git clone https://github.com/iamDestroy/YukiBot-MD
-```
+# 2. Instalación de dependencias del sistema
+# git: clonar | nodejs: motor | ffmpeg: audio/video | imagemagick: stickers
+apt update && apt upgrade -y && pkg install -y git nodejs ffmpeg imagemagick yarn
 
-```bash
-cd YukiBot-MD
-```
+# 3. Clonar el proyecto
+git clone https://github.com/Juandi-18/bot-whatsap-yukibot.git
 
-```bash
-yarn install
-```
+# 4. Instalación de paquetes de Node
+cd bot-whatsap-yukibot
+npm install && yarn install
 
-```bash
-npm install
-```
-
-```bash
+# 5. Iniciar el bot
 npm start
-```
 
 > *Si aparece **(Y/I/N/O/D/Z) [default=N] ?** use la letra **"y"** y luego **"ENTER"** para continuar con la instalación.*
 

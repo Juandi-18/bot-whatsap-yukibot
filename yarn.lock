@@ -39,6 +39,19 @@
     hashery "^1.5.1"
     keyv "^5.6.0"
 
+"@distube/ytdl-core@^4.16.12":
+  version "4.16.12"
+  resolved "https://registry.npmjs.org/@distube/ytdl-core/-/ytdl-core-4.16.12.tgz"
+  integrity sha512-/NR8Jur1Q4E2oD+DJta7uwWu7SkqdEkhwERt7f4iune70zg7ZlLLTOHs1+jgg3uD2jQjpdk7RGC16FqstG4RsA==
+  dependencies:
+    http-cookie-agent "^7.0.1"
+    https-proxy-agent "^7.0.6"
+    m3u8stream "^0.8.6"
+    miniget "^4.2.3"
+    sax "^1.4.1"
+    tough-cookie "^5.1.2"
+    undici "^7.8.0"
+
 "@hapi/boom@^9.1.3":
   version "9.1.4"
   resolved "https://registry.npmjs.org/@hapi/boom/-/boom-9.1.4.tgz"
@@ -516,6 +529,11 @@ acorn@^7.0.0:
   resolved "https://registry.npmjs.org/acorn/-/acorn-7.4.1.tgz"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
+agent-base@^7.1.2, agent-base@^7.1.4:
+  version "7.1.4"
+  resolved "https://registry.npmjs.org/agent-base/-/agent-base-7.1.4.tgz"
+  integrity sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==
+
 ansi-regex@^3.0.0:
   version "3.0.1"
   resolved "https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.0.1.tgz"
@@ -928,7 +946,7 @@ data-uri-to-buffer@^4.0.0:
   resolved "https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz"
   integrity sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==
 
-debug@^4.4.3:
+debug@^4.4.3, debug@4:
   version "4.4.3"
   resolved "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz"
   integrity sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==
@@ -1355,6 +1373,21 @@ http-cache-semantics@^4.0.0:
   resolved "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.2.0.tgz"
   integrity sha512-dTxcvPXqPvXBQpq5dUr6mEMJX4oIEFv6bwom3FDwKRDsuIjjJGANqhBuoAn9c1RQJIdAKav33ED65E2ys+87QQ==
 
+http-cookie-agent@^7.0.1:
+  version "7.0.3"
+  resolved "https://registry.npmjs.org/http-cookie-agent/-/http-cookie-agent-7.0.3.tgz"
+  integrity sha512-EeZo7CGhfqPW6R006rJa4QtZZUpBygDa2HZH3DJqsTzTjyRE6foDBVQIv/pjVsxHC8z2GIdbB1Hvn9SRorP3WQ==
+  dependencies:
+    agent-base "^7.1.4"
+
+https-proxy-agent@^7.0.6:
+  version "7.0.6"
+  resolved "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-7.0.6.tgz"
+  integrity sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==
+  dependencies:
+    agent-base "^7.1.2"
+    debug "4"
+
 human-readable@^0.2.1:
   version "0.2.1"
   resolved "https://registry.npmjs.org/human-readable/-/human-readable-0.2.1.tgz"
@@ -1582,6 +1615,14 @@ lru-cache@^11.1.0:
   resolved "https://registry.npmjs.org/lru-cache/-/lru-cache-11.3.0.tgz"
   integrity sha512-sr8xPKE25m6vJVcrdn6NxtC0fVfuPowbscLypegRgOm0yXSqr5JNHCAY3hnusdJ7HRBW04j6Ip4khvHU778DuQ==
 
+m3u8stream@^0.8.6:
+  version "0.8.6"
+  resolved "https://registry.npmjs.org/m3u8stream/-/m3u8stream-0.8.6.tgz"
+  integrity sha512-LZj8kIVf9KCphiHmH7sbFQTVe4tOemb202fWwvJwR9W5ENW/1hxJN6ksAWGhQgSBSa3jyWhnjKU1Fw1GaOdbyA==
+  dependencies:
+    miniget "^4.2.2"
+    sax "^1.2.4"
+
 make-dir@^3.0.0:
   version "3.1.0"
   resolved "https://registry.npmjs.org/make-dir/-/make-dir-3.1.0.tgz"
@@ -1632,6 +1673,11 @@ min-document@^2.19.0:
   integrity sha512-8S5I8db/uZN8r9HSLFVWPdJCvYOejMcEC82VIzNUc6Zkklf/d1gg2psfE79/vyhWOj4+J8MtwmoOz3TmvaGu5A==
   dependencies:
     dom-walk "^0.1.0"
+
+miniget@^4.2.2, miniget@^4.2.3:
+  version "4.2.3"
+  resolved "https://registry.npmjs.org/miniget/-/miniget-4.2.3.tgz"
+  integrity sha512-SjbDPDICJ1zT+ZvQwK0hUcRY4wxlhhNpHL9nJOB2MEAXRGagTljsO8MEDzQMTFf0Q8g4QNi8P9lEm/g7e+qgzA==
 
 minimatch@~3.0.4:
   version "3.0.8"
@@ -2119,7 +2165,7 @@ safe-stable-stringify@^2.3.1:
   resolved "https://registry.npmjs.org/safe-stable-stringify/-/safe-stable-stringify-2.5.0.tgz"
   integrity sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==
 
-sax@>=0.6.0:
+sax@^1.1.3, sax@^1.2.4, sax@^1.4.1, sax@>=0.6.0:
   version "1.6.0"
   resolved "https://registry.npmjs.org/sax/-/sax-1.6.0.tgz"
   integrity sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA==
@@ -2319,6 +2365,18 @@ tinygradient@^1.1.5:
     "@types/tinycolor2" "^1.4.0"
     tinycolor2 "^1.0.0"
 
+tldts-core@^6.1.86:
+  version "6.1.86"
+  resolved "https://registry.npmjs.org/tldts-core/-/tldts-core-6.1.86.tgz"
+  integrity sha512-Je6p7pkk+KMzMv2XXKmAE3McmolOQFdxkKw0R8EYNr7sELW46JqnNeTX8ybPiQgvg1ymCoF8LXs5fzFaZvJPTA==
+
+tldts@^6.1.32:
+  version "6.1.86"
+  resolved "https://registry.npmjs.org/tldts/-/tldts-6.1.86.tgz"
+  integrity sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==
+  dependencies:
+    tldts-core "^6.1.86"
+
 to-readable-stream@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/to-readable-stream/-/to-readable-stream-1.0.0.tgz"
@@ -2340,6 +2398,13 @@ token-types@^6.1.1, token-types@^6.1.2:
     "@borewit/text-codec" "^0.2.1"
     "@tokenizer/token" "^0.3.0"
     ieee754 "^1.2.1"
+
+"tough-cookie@^4.0.0 || ^5.0.0 || ^6.0.0", tough-cookie@^5.1.2:
+  version "5.1.2"
+  resolved "https://registry.npmjs.org/tough-cookie/-/tough-cookie-5.1.2.tgz"
+  integrity sha512-FVDYdxtnj0G6Qm/DhNPSb8Ju59ULcup3tuJxkFb5K8Bv2pUXILbf0xZWU8PX8Ov19OXljbUyveOFwRMwkXzO+A==
+  dependencies:
+    tldts "^6.1.32"
 
 tr46@~0.0.3:
   version "0.0.3"
@@ -2367,6 +2432,11 @@ uint8array-extras@^1.4.0, uint8array-extras@^1.5.0:
   version "1.5.0"
   resolved "https://registry.npmjs.org/uint8array-extras/-/uint8array-extras-1.5.0.tgz"
   integrity sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==
+
+undici@^7.0.0, undici@^7.8.0:
+  version "7.24.7"
+  resolved "https://registry.npmjs.org/undici/-/undici-7.24.7.tgz"
+  integrity sha512-H/nlJ/h0ggGC+uRL3ovD+G0i4bqhvsDOpbDv7At5eFLlj2b41L8QliGbnl2H7SnDiYhENphh1tQFJZf+MyfLsQ==
 
 unique-string@^2.0.0:
   version "2.0.0"
@@ -2570,7 +2640,7 @@ yargs@^18.0.0:
     y18n "^5.0.5"
     yargs-parser "^22.0.0"
 
-yt-search@^2.10.4:
+yt-search@^2.13.1:
   version "2.13.1"
   resolved "https://registry.npmjs.org/yt-search/-/yt-search-2.13.1.tgz"
   integrity sha512-iUvUpUYyG1Gk5MxwdxUkSeugXR2DcWX+pEq3rJlsNHHNp4+Lka+fCwNYEdoN5ovxltAzAvx0K3/3MbX7FqDdAw==
@@ -2583,3 +2653,12 @@ yt-search@^2.10.4:
     jsonpath-plus "~10.3.0"
     minimist "~1.2.5"
     node-fzf "~0.14.0"
+
+ytdl-core@^4.11.5:
+  version "4.11.5"
+  resolved "https://registry.npmjs.org/ytdl-core/-/ytdl-core-4.11.5.tgz"
+  integrity sha512-27LwsW4n4nyNviRCO1hmr8Wr5J1wLLMawHCQvH8Fk0hiRqrxuIu028WzbJetiYH28K8XDbeinYW4/wcHQD1EXA==
+  dependencies:
+    m3u8stream "^0.8.6"
+    miniget "^4.2.2"
+    sax "^1.1.3"

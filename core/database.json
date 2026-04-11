@@ -33,7 +33,7 @@
       "name": "Juandi",
       "exp": 23,
       "level": 2,
-      "usedcommands": 78,
+      "usedcommands": 103,
       "pasatiempo": "",
       "description": "",
       "marry": "",
@@ -92,7 +92,7 @@
       "name": "pucy distroyer",
       "exp": 1290,
       "level": 12,
-      "usedcommands": 127,
+      "usedcommands": 129,
       "pasatiempo": "",
       "description": "",
       "marry": "",
@@ -1056,6 +1056,32 @@
       "birth": "",
       "metadatos": null,
       "metadatos2": null
+    },
+    "21621765932@s.whatsapp.net": {
+      "name": "Sam Sam",
+      "exp": 0,
+      "level": 0,
+      "usedcommands": 0,
+      "pasatiempo": "",
+      "description": "",
+      "marry": "",
+      "genre": "",
+      "birth": "",
+      "metadatos": null,
+      "metadatos2": null
+    },
+    "5492966701309@s.whatsapp.net": {
+      "name": "Consta",
+      "exp": 0,
+      "level": 0,
+      "usedcommands": 0,
+      "pasatiempo": "",
+      "description": "",
+      "marry": "",
+      "genre": "",
+      "birth": "",
+      "metadatos": null,
+      "metadatos2": null
     }
   },
   "chats": {
@@ -1458,7 +1484,7 @@
               "cmds": 0
             },
             "2026-04-10": {
-              "msgs": 4,
+              "msgs": 9,
               "cmds": 1
             }
           },
@@ -1640,8 +1666,8 @@
               "cmds": 8
             },
             "2026-04-10": {
-              "msgs": 2,
-              "cmds": 1
+              "msgs": 10,
+              "cmds": 3
             }
           },
           "usedTime": null,
@@ -1876,8 +1902,12 @@
               "cmds": 3
             },
             "2026-04-10": {
-              "msgs": 49,
-              "cmds": 38
+              "msgs": 54,
+              "cmds": 41
+            },
+            "2026-04-11": {
+              "msgs": 28,
+              "cmds": 22
             }
           },
           "usedTime": "2026-04-09T21:09:01.128Z",
@@ -2154,6 +2184,16 @@
               "cmds": 0
             }
           },
+          "usedTime": null,
+          "lastCmd": 0,
+          "coins": 0,
+          "bank": 0,
+          "afk": -1,
+          "afkReason": "",
+          "characters": []
+        },
+        "5492966701309@s.whatsapp.net": {
+          "stats": {},
           "usedTime": null,
           "lastCmd": 0,
           "coins": 0,
@@ -2523,6 +2563,16 @@
           "characters": []
         },
         "5212722263660@s.whatsapp.net": {
+          "stats": {},
+          "usedTime": null,
+          "lastCmd": 0,
+          "coins": 0,
+          "bank": 0,
+          "afk": -1,
+          "afkReason": "",
+          "characters": []
+        },
+        "21621765932@s.whatsapp.net": {
           "stats": {},
           "usedTime": null,
           "lastCmd": 0,
@@ -3203,7 +3253,11 @@
         "573108615379@s.whatsapp.net": {
           "stats": {
             "2026-04-10": {
-              "msgs": 15,
+              "msgs": 16,
+              "cmds": 0
+            },
+            "2026-04-11": {
+              "msgs": 11,
               "cmds": 0
             }
           },

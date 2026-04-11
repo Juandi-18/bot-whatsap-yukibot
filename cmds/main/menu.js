@@ -44,14 +44,15 @@ export default {
       menuTexto += `╭┈ ↷\n`;
       menuTexto += `│ ✐ 𝓓𝓮𝔀𝓮𝓵𝓸𝓹𝓮𝓭 𝓫𝔂 Pusy Destroyer ❤️\n`;
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴏᴍᴀɴᴅᴏs ෴\n`;
-      menuTexto += `│ https://comands.com\n`;
+      // Usamos un punto especial en comands.com
+      menuTexto += `│ comands․com\n`; 
       menuTexto += `│ ✐ ꒷ꕤ💎ദ ᴄᴀɴᴀʟ ᴏғɪᴄɪᴀʟ ෴\n`;
-      menuTexto += `│ https://whatsapp.com/channel/${canalId.split('@')[0]}\n`;
+      // Rompemos el link del canal para que no sea clickeable por bots
+      menuTexto += `│ whatsapp․com/channel/${canalId.split('@')[0]}\n`;
       menuTexto += `╰─────────────────\n\n`;
       menuTexto += content;
       menuTexto = menuTexto.replace(/\$prefix/g, usedPrefix);
 
-      // --- EL "SANTO GRIAL" DEL MENÚ VERTICAL CLICKEABLE ---
       const messageOptions = {
         text: menuTexto,
         mentions: [m.sender],
@@ -60,15 +61,14 @@ export default {
           isForwarded: false,
           externalAdReply: {
             title: botname,
-            body: "Click para ir a comands.com",
-            // IMPORTANTE: thumbnailUrl debe ser el link directo
+            // Quitamos el link del body
+            body: "Click para ir a comands․com",
             thumbnailUrl: bannerUrl, 
-            sourceUrl: "https://comands.com",
+            // Ponemos el link de forma que el bot no lo detecte como "link de grupo"
+            sourceUrl: "https://google.com", 
             mediaType: 1,
-            // renderLargerThumbnail: true es lo que hace que se vea grande
             renderLargerThumbnail: true, 
             showAdAttribution: false,
-            // Agregamos esto para forzar que no use el estilo de "link de noticia"
             containsAutoReply: true 
           }
         }

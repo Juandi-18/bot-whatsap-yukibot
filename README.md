@@ -40,27 +40,39 @@ Yuki Bot es un bot de WhatsApp multifuncional basado en `baileys`. Este bot ofre
 
 ---
 
-## 🍒 Instalación en Termux (Recomendado)
+🍒 Instalación en Termux (Recomendado)
+<details>
+<summary><strong>Paso 1: Preparación del Entorno</strong> (Click para desplegar)</summary>
 
-> [!TIP]
-> Esta es la mejor opción para evitar bloqueos de IP de YouTube y asegurar que los comandos de descarga funcionen siempre.
+Primero, concede permisos de almacenamiento a Termux:
 
-```bash
-# 1. Permisos de almacenamiento
+Bash
 termux-setup-storage
+Luego, instala todas las dependencias necesarias del sistema:
 
-# 2. Instalación de dependencias del sistema
-# git: clonar | nodejs: motor | ffmpeg: audio/video | imagemagick: stickers
+Bash
 apt update && apt upgrade -y && pkg install -y git nodejs ffmpeg imagemagick yarn
+</details>
 
-# 3. Clonar el proyecto
+<details>
+<summary><strong>Paso 2: Instalación del Bot</strong> (Click para desplegar)</summary>
+
+Clona el repositorio oficial:
+
+Bash
 git clone https://github.com/Juandi-18/bot-whatsap-yukibot.git
+Entra a la carpeta y descarga los módulos necesarios:
 
-# 4. Instalación de paquetes de Node
-cd bot-whatsap-yukibot
-npm install && yarn install
+Bash
+cd bot-whatsap-yukibot && npm install && yarn install
+</details>
 
-# 5. Iniciar el bot
+<details>
+<summary><strong>Paso 3: Ejecución y Mantenimiento</strong> (Click para desplegar)</summary>
+
+Para iniciar el bot normalmente:
+
+Bash
 npm start
 
 > *Si aparece **(Y/I/N/O/D/Z) [default=N] ?** use la letra **"y"** y luego **"ENTER"** para continuar con la instalación.*

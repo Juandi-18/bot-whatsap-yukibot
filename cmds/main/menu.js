@@ -75,7 +75,7 @@ export default {
       };
 
       // ENVIAMOS SOLO TEXTO CON LA TARJETA CONFIGURADA
-      await client.sendMessage(m.chat, messageOptions, { quoted: m });
+      return await client.sendMessage(m.chat, messageOptions, { quoted: m });
 
     } catch (e) {
       console.error(e);

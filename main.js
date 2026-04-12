@@ -140,7 +140,7 @@ export default async (client, m) => {
   }
   
   // Validaciones de dueños y baneos
-  if (!isOwners && settings.self) return;  
+  //if (!isOwners && settings.self) return;  
   if (m.chat && !m.chat.endsWith('g.us')) {
      const allowedInPrivateForUsers = ['help', 'menu', 'ping', 'speed', 'status', 'estado'] // Lista resumida
      if (!isOwners && !allowedInPrivateForUsers.includes(command)) return;

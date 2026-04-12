@@ -6,7 +6,7 @@ const del = {
     run: async (client, m, args, usedPrefix, command) => {
         try {
             // Obtenemos el número puro del bot a prueba de errores
-            const botNumber = client.decodeJid(client.user.id).split('@')[0]; 
+            const botNumber = client.user.id.split(':')[0];
 
             // 1. Borrado por RESPUESTA (Respondiendo a un mensaje)
             if (m.quoted && !args[0]) {

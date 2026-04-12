@@ -24,9 +24,9 @@ export default {
           const isVideo = /\.mp4(\?.*)?$/i.test(fileUrl)
           const caption = `ꕥ Resultados para » ${tag}`
           if (isVideo) {
-            await client.sendMessage(m.chat, { video: buffer, caption, mentions: [m.sender] })
+            return await client.sendMessage(m.chat, { video: buffer, caption, mentions: [m.sender] })
           } else {
-            await client.sendMessage(m.chat, { image: buffer, caption, mentions: [m.sender] })
+            return await client.sendMessage(m.chat, { image: buffer, caption, mentions: [m.sender] })
           }
           sent = true
           break
@@ -36,7 +36,7 @@ export default {
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

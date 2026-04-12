@@ -47,7 +47,7 @@ export default {
         const media = { mimetype: 'webp', data: webpBuffer };
         const metadata = { packname: pack, author: author, categories: [''] };
         const stickerPath = await writeExif(media, metadata);
-        await client.sendMessage(m.chat, { sticker: { url: stickerPath } }, { quoted: m });
+        return await client.sendMessage(m.chat, { sticker: { url: stickerPath } }, { quoted: m });
         fs.unlinkSync(stickerPath);
       };
       const convertToGif = async (inputPath) => {

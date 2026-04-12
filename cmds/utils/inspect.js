@@ -87,7 +87,7 @@ export default {
     }
     if (info) {
     const mentions = (res?.participants || inviteInfo?.participants || []).filter(p => p && p.id && (p.admin === "admin" || p.admin === "superadmin" || p.id === (res?.owner || inviteInfo?.owner))).map(p => p.id).filter(id => id && typeof id === 'string' && id.includes('@'))
-      await client.sendMessage(m.chat, { text: info, contextInfo: {
+      return await client.sendMessage(m.chat, { text: info, contextInfo: {
         mentionedJid: mentions,
         externalAdReply: {
           title: "❀ Inspector de Grupos",
@@ -113,7 +113,7 @@ export default {
             pp = thumb
           }
           if (channelUrl && newsletterInfo) {
-            await client.sendMessage(m.chat, { text: caption, contextInfo: {
+            return await client.sendMessage(m.chat, { text: caption, contextInfo: {
               mentionedJid: Array.isArray(client.parseMention(caption)) ? client.parseMention(caption) : [],
               externalAdReply: {
                 title: "❀ Inspector de Canales",
@@ -128,7 +128,7 @@ export default {
           }
           newsletterInfo.id ? client.sendMessage(m.chat, { text: newsletterInfo.id }, { quoted: null }) : ''
         } catch (e) {
-          await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+          return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
         }
       }
     }

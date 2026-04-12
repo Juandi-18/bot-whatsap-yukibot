@@ -35,7 +35,7 @@ export default {
     user.coins += cambio
     if (user.coins < 0) user.coins = 0
     const mensaje = `「✿」La moneda ha caído en *${capitalize(resultado)}* y has ${acierto ? 'ganado' : 'perdido'} *¥${Math.abs(cambio).toLocaleString()} ${monedas}*!\n> Tu elección fue *${capitalize(eleccion)}*`
-    await client.sendMessage(m.chat, { text: mensaje }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: mensaje }, { quoted: m })
   },
 }
 

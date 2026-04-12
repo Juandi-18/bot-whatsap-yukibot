@@ -23,7 +23,7 @@ export default {
         text += `> » Modificado: \`${formatDate(pack.lastModified || pack.id)}\`\n`
         text += `> » Estado: \`${estado}\`\n\n`
       })
-      await client.sendMessage(m.chat, { text, mentions: [m.sender] }, { quoted: m })
+      return await client.sendMessage(m.chat, { text, mentions: [m.sender] }, { quoted: m })
     } catch (e) {
       m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

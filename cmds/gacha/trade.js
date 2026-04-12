@@ -36,7 +36,7 @@ export default {
       chatData.intercambios.push({ solicitante: userId, personaje1: { id: idA, name: pA.name, value: valueA }, personaje2: { id: idB, name: pB.name, value: valueB }, destinatario: receiverId, expiracion: Date.now() + 60000 })
       chatData.timeTrade = Date.now() + 60000
       const solicitudMessage = `「✿」 ${db.users[receiverId].name || receiverId.split('@')[0]}, ${db.users[userId].name || userId.split('@')[0]} te ha enviado una solicitud de intercambio.\n\n✦ [${db.users[receiverId].name || receiverId.split('@')[0]}] *${pB.name}* (${valueB})\n✦ [${db.users[userId].name || userId.split('@')[0]}] *${pA.name}* (${valueA})\n\n✐ Para aceptar el intercambio responde a este mensaje con "${usedPrefix}aceptar", la solicitud expira en 60 segundos.`
-      await client.sendMessage(chatId, { text: solicitudMessage, mentions: [userId, receiverId] }, { quoted: m })
+      return await client.sendMessage(chatId, { text: solicitudMessage, mentions: [userId, receiverId] }, { quoted: m })
     } catch (e) {
       return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

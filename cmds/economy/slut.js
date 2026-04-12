@@ -73,7 +73,7 @@ export default {
         user.bank = 0
       }
     }
-    await client.sendMessage(chatId, { text: `「✿」 ${message}`, mentions: [senderId] }, { quoted: m })
+    return await client.sendMessage(chatId, { text: `「✿」 ${message}`, mentions: [senderId] }, { quoted: m })
   },
 }
 

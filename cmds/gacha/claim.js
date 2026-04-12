@@ -74,10 +74,10 @@ export default {
       const custom = global.db.data.users?.[m.sender]?.claimMessage
       const duration = ((now - record.expiresAt + 60000) / 1000).toFixed(1)
       const finalMessage = custom ? custom.replace(/€user/g, `*${displayName}*`).replace(/€character/g, `*${record.name}*`) : `*${record.name}* ha sido reclamado por *${displayName}*`
-      await client.sendMessage(m.chat, { text: `❀ ${finalMessage} (${duration}s)` }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: `❀ ${finalMessage} (${duration}s)` }, { quoted: m })
       chat.rolls[quotedId].claimed = true
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

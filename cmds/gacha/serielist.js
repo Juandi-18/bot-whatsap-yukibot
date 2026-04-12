@@ -37,9 +37,9 @@ export default {
         msg += `» *${name}* (${characters}) *ID* (${key})\n`
       }
       msg += `\n> • _Página ${page}/${totalPages}_`
-      await m.reply(msg.trim())
+      return await m.reply(msg.trim())
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

@@ -12,7 +12,7 @@ export default {
       delete global.db.data.users[m.sender].claimMessage
       m.reply('❀ Mensaje de reclamación restablecido.')
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

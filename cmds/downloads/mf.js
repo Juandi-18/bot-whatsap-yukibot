@@ -55,14 +55,14 @@ export default {
         (scraped.uploaded ? `ׄ ﹙ׅ✿﹚ּ *Subido* › ${scraped.uploaded}\n` : '') +
         `\n${dev}`
 
-      await client.sendContextInfoIndex(m.chat, info, {}, m, true, null, {
+      return await client.sendContextInfoIndex(m.chat, info, {}, m, true, null, {
         banner: 'https://cdn.yuki-wabot.my.id/files/5txZ.jpeg',
         title: '𖹭  ׄ  ְ ✿ Mediafire ✩',
         body: '✰ Descarga De MF',
         redes: global.db.data.settings[client.user.id.split(':')[0] + '@s.whatsapp.net'].link
       })
 
-      await client.sendMessage(
+      return await client.sendMessage(
         m.chat,
         { document: { url: scraped.downloadLink }, mimetype: tipo, fileName: title },
         { quoted: m }

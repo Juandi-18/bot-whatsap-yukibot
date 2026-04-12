@@ -15,11 +15,11 @@ export default {
     try {
       await m.react('🕒')
       const result = await translate(text, { to: lang, autoCorrect: true })
-      await client.sendMessage(m.chat, { text: result.text }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: result.text }, { quoted: m })
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

@@ -48,10 +48,10 @@ export default {
       }
       let { key } = await client.sendMessage(m.chat, { text: "🎲 El crupier lanza los dados... ¡Las apuestas están cerradas!" }, { quoted: m })
       await delay(2000)
-      await client.sendMessage(m.chat, { text: "❀ Los números están girando... ¡Prepárate para el resultado!", edit: key }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: "❀ Los números están girando... ¡Prepárate para el resultado!", edit: key }, { quoted: m })
       await delay(2000)
       const replyMsg = `❀ \`Veamos qué números tienen!\`\n\n➠ *${botname}* : ${Aku}\n➠ *${userName}* : ${Kamu}\n\n${resultado}`
-      await client.sendMessage(m.chat, { text: replyMsg.trim(), edit: key }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: replyMsg.trim(), edit: key }, { quoted: m })
     } else {
       client.reply(m.chat, `ꕥ No tienes *¥${formatNumber(count)} ${currency}* para apostar!`, m)
     }

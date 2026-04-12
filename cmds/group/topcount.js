@@ -46,6 +46,6 @@ export default {
     if (page < totalPages) {
       report += `\n> Para ver la siguiente página › *${prefix + command} ${daysArg} ${page + 1}*`
     }
-    await client.reply(chatId, report, m)
+    return await client.reply(chatId, report, m)
   }
 }

@@ -38,7 +38,7 @@ export default {
     if (!eliminados)
       return m.reply('ꕥ No se encontraron usuarios inactivos.\n> ⴵ Tiempo limite: 40 dias')
     const report = ['❀ Se han eliminado los datos de los usuarios inactivos.', `> ♡ Claims eliminados: ${waifus}`, `> ⛁ Coins eliminados: ${dinero.toLocaleString()}`, `> ❖ Usuarios inactivos: ${eliminados}`, `> ⴵ Tiempo límite: 40 días`, `> ❏ El comando se ejecutó en ${getDuration(start)}ms`, '', ...userList,].join('\n')
-    await client.sendMessage(m.chat, { text: report, mentions }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: report, mentions }, { quoted: m })
   },
 }
 

@@ -32,7 +32,7 @@ export default {
     let next = Math.min(60000 + users.monthlyStreak * 5000, 95000).toLocaleString()
     let msg = `> Mes *${users.monthlyStreak + 1}* » *+${next}*`
     if (lost) msg += `\n> ☆ ¡Has perdido tu racha de meses!`
-    await client.sendMessage(m.chat, { text: `「❁」 Has reclamado tu recompensa mensual de *+${coins.toLocaleString()} ${currency}* (Mes *${users.monthlyStreak}*)\n${msg}` }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: `「❁」 Has reclamado tu recompensa mensual de *+${coins.toLocaleString()} ${currency}* (Mes *${users.monthlyStreak}*)\n${msg}` }, { quoted: m })
   }
 }
 

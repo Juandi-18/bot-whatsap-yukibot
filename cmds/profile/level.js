@@ -35,6 +35,6 @@ export default {
 ➨ Progreso › *${progresoActual} => ${xp}* _(${porcentaje}%)_
 ✐ Puesto › *#${rank}*
 ❒ Comandos ejecutados › *${user.usedcommands?.toLocaleString() || 0}*`
-    await client.sendMessage(chatId, { text: txt, mentions: [name] }, { quoted: m })
+    return await client.sendMessage(chatId, { text: txt, mentions: [name] }, { quoted: m })
   }
 }

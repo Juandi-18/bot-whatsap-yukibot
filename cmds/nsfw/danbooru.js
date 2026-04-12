@@ -16,11 +16,11 @@ export default {
       if (!mediaList.length) return client.reply(m.chat, `《✧》 No se encontraron resultados para ${tag}`, m)
       const media = mediaList[Math.floor(Math.random() * mediaList.length)]
       const caption = `ꕥ Resultados para » ${tag}`
-      await client.sendMessage(m.chat, { image: { url: media }, caption, mentions: [m.sender] })
+      return await client.sendMessage(m.chat, { image: { url: media }, caption, mentions: [m.sender] })
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

@@ -25,14 +25,14 @@ export default {
         `${data.format ? `𖣣ֶㅤ֯⌗ ❀  ⬭ *Formato* › ${data.format}\n` : ''}` +
         `𖣣ֶㅤ֯⌗ ❀  ⬭ *Enlace* › ${args[0]}`
       if (data.type === 'video') {
-        await client.sendMessage(m.chat, { video: { url: data.url }, caption, mimetype: 'video/mp4', fileName: 'ig.mp4' }, { quoted: m })
+        return await client.sendMessage(m.chat, { video: { url: data.url }, caption, mimetype: 'video/mp4', fileName: 'ig.mp4' }, { quoted: m })
       } else if (data.type === 'image') {
-        await client.sendMessage(m.chat, { image: { url: data.url }, caption }, { quoted: m })
+        return await client.sendMessage(m.chat, { image: { url: data.url }, caption }, { quoted: m })
       } else {
         throw new Error('Contenido no soportado.')
       }
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

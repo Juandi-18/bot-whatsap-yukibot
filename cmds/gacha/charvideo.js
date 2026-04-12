@@ -84,9 +84,9 @@ export default {
       const msg = `❀ Nombre » *${character.name}*\n⚥ Género » *${character.gender || 'Desconocido'}*\n❖ Fuente » *${source}*`;
       const vidRes = await axios.get(media, { responseType: 'arraybuffer', timeout: 20000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Referer': getRefererForUrl(media) } });
       const buffer = Buffer.from(vidRes.data);
-      await client.sendMessage(m.chat, { video: buffer, caption: msg }, { quoted: m });
+      return await client.sendMessage(m.chat, { video: buffer, caption: msg }, { quoted: m });
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`);
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`);
     }
   }
 };

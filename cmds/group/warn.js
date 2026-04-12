@@ -46,7 +46,7 @@ export default {
       } else if (total >= warnLimit && !expulsar) {
         message += `\n\n> ❖ El usuario ha alcanzado el límite de advertencias.`
       }
-      await client.reply(m.chat, message, m, { mentions: [targetId] })
+      return await client.reply(m.chat, message, m, { mentions: [targetId] })
     } catch (e) {
      return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

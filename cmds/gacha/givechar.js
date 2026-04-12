@@ -53,9 +53,9 @@ export default {
       }
       let senderName = global.db.data.users[m.sender].name.trim() || m.sender.split('@')[0]
       let receiverName = global.db.data.users[targetId].name.trim() || targetId.split('@')[0]
-      await client.reply(m.chat, `❀ *${record.name}* ha sido regalado a *${receiverName}* por *${senderName}*.`, m, { mentions: [targetId] })
+      return await client.reply(m.chat, `❀ *${record.name}* ha sido regalado a *${receiverName}* por *${senderName}*.`, m, { mentions: [targetId] })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

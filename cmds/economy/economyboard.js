@@ -33,9 +33,9 @@ export default {
       text += `\n\n> ⌦ Página *${page}* de *${totalPages}*`
       if (page < totalPages)
         text += `\n> Para ver la siguiente página › *${usedPrefix + command} ${page + 1}*`
-      await client.sendMessage(chatId, { text }, { quoted: m })
+      return await client.sendMessage(chatId, { text }, { quoted: m })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

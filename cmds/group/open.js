@@ -19,7 +19,7 @@ export default {
         return client.reply(m.chat, `✿ El grupo ha sido abierto correctamente.`, m)
       }
       if (timeout > 0) {
-        await client.reply(m.chat, `❀ El grupo se abrirá en ${clockString(timeout)}.`, m)
+        return await client.reply(m.chat, `❀ El grupo se abrirá en ${clockString(timeout)}.`, m)
         setTimeout(async () => {
           try {
             const md = await client.groupMetadata(m.chat)

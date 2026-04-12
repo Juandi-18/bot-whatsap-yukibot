@@ -412,7 +412,7 @@ export async function smsg(client, m, store) {
     } else {
       buffer = await imageToWebp(buff)
     }
-    await client.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+    return await client.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
     return buffer
   }
   
@@ -424,7 +424,7 @@ export async function smsg(client, m, store) {
     } else {
       buffer = await videoToWebp(buff)
     }
-    await client.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+    return await client.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
     return buffer
   }  
   

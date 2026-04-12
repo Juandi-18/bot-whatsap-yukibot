@@ -76,7 +76,7 @@ export default {
 ♤ Valor total › *${haremValue.toLocaleString()}*${favLine}
 ⛁ Coins totales › *¥${totalCoins.toLocaleString()} ${currency}*
 ❒ Comandos ejecutados › *${comandos.toLocaleString()}*`
-      await client.sendMessage(m.chat, { image: { url: perfil }, caption: profileText }, { quoted: m })
+      return await client.sendMessage(m.chat, { image: { url: perfil }, caption: profileText }, { quoted: m })
     } catch (e) {
      return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

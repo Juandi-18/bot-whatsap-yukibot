@@ -126,7 +126,7 @@ export default {
         })).then(results => results.filter(r => r !== null))
       ]);
       if (!stickerResults.length) return client.reply(m.chat, `《✧》 No se pudieron procesar los stickers del pack.`, m);
-      await client.sendMessage(m.chat, { stickerPack: { name: packName, publisher: author?.name || author?.username || `@${name}`, description: 'ʏᴜᴋɪ 🧠 Wᴀʙᴏᴛ', cover, stickers: stickerResults } }, { quoted: m });
+      return await client.sendMessage(m.chat, { stickerPack: { name: packName, publisher: author?.name || author?.username || `@${name}`, description: 'ʏᴜᴋɪ 🧠 Wᴀʙᴏᴛ', cover, stickers: stickerResults } }, { quoted: m });
       await m.react('✔️');
     } catch (e) {
       await m.react('✖️');

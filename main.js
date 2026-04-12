@@ -191,7 +191,7 @@ export default async (client, m) => {
      
   } catch (error) {
      console.error("Error en ejecución:", error);
-     await client.sendMessage(m.chat, { text: `《✧》 Error: ${error.message}` }, { quoted: m });
+     return await client.sendMessage(m.chat, { text: `《✧》 Error: ${error.message}` }, { quoted: m });
   }
   level(m);
 };

@@ -18,7 +18,7 @@ export default {
       }
       const { fileName, fileSize, mimetype, downloadUrl } = result.data
       const caption = `۟　ꕥ ᩧ　𓈒　ׄ　𝖦oogle 𝖣𝗋𝗂𝗏𝖾　ׅ　✿۟\n\n` + `ׄ ﹙ׅ☆﹚ּ *Nombre* › ${fileName}\n` + `ׄ ﹙ׅ☆﹚ּ *Tamaño* › ${fileSize}\n` + `ׄ ﹙ׅ☆﹚ּ *Tipo* › ${mimetype}\n\n` + `𖣣ֶㅤ֯⌗ ☆  ⬭ *Enlace* › ${url}`
-     await client.sendMessage(m.chat, { document: { url: downloadUrl }, mimetype, fileName, caption }, { quoted: m })
+     return await client.sendMessage(m.chat, { document: { url: downloadUrl }, mimetype, fileName, caption }, { quoted: m })
     } catch (e) {
       return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

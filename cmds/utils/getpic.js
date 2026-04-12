@@ -12,9 +12,9 @@ export default {
       const img = await client.profilePictureUrl(who, 'image').catch(() => null)
       if (!img)
         return client.sendMessage(m.chat, { text: `《✧》 No se pudo obtener la foto de perfil de @${who.split('@')[0]}.`, mentions: [who] }, { quoted: m })
-      await client.sendMessage(m.chat, { image: { url: img }, caption: null }, { quoted: m })
+      return await client.sendMessage(m.chat, { image: { url: img }, caption: null }, { quoted: m })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 };

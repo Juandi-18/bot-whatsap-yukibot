@@ -42,9 +42,9 @@ export default {
         msg += `   ♡ ${char.favorites} favorito${char.favorites !== 1 ? 's' : ''}.\n`
       })
       msg += `\n> Página ${page} de ${totalPages}`
-      await client.reply(m.chat, msg.trim(), m)
+      return await client.reply(m.chat, msg.trim(), m)
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

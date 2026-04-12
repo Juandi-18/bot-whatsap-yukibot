@@ -69,9 +69,9 @@ export default {
       }
       const source = getSeriesNameByCharacter(dbChars, character.id)
       const msg = `❀ Nombre » *${character.name}*\n⚥ Género » *${character.gender || 'Desconocido'}*\n❖ Fuente » *${source}*`
-      await client.sendMessage(m.chat, { image: { url: media }, caption: msg }, { quoted: m })
+      return await client.sendMessage(m.chat, { image: { url: media }, caption: msg }, { quoted: m })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

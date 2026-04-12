@@ -68,6 +68,6 @@ export default {
         message += categorizedBots[category].join('\n') + '\n'
       }
     }
-    await client.sendContextInfoIndex(m.chat, message, {}, m, true, mentionedJid)
+    return await client.sendContextInfoIndex(m.chat, message, {}, m, true, mentionedJid)
   },
 };

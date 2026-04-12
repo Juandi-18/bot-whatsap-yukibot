@@ -22,16 +22,16 @@ export default {
         buffer = Buffer.concat([buffer, chunk])
       }
       if (/video/i.test(messageType)) {
-        await client.sendMessage(m.chat, { video: buffer, caption: mediaMessage.caption || '', mimetype: 'video/mp4' }, { quoted: m })
+        return await client.sendMessage(m.chat, { video: buffer, caption: mediaMessage.caption || '', mimetype: 'video/mp4' }, { quoted: m })
       } else if (/image/i.test(messageType)) {
-        await client.sendMessage(m.chat, { image: buffer, caption: mediaMessage.caption || '' }, { quoted: m })
+        return await client.sendMessage(m.chat, { image: buffer, caption: mediaMessage.caption || '' }, { quoted: m })
       } else if (/audio/i.test(messageType)) {
-        await client.sendMessage(m.chat, { audio: buffer, mimetype: 'audio/ogg; codecs=opus', ptt: mediaMessage.ptt || false }, { quoted: m })
+        return await client.sendMessage(m.chat, { audio: buffer, mimetype: 'audio/ogg; codecs=opus', ptt: mediaMessage.ptt || false }, { quoted: m })
       }
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

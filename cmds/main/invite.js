@@ -59,7 +59,7 @@ export default {
         await global.client.sendContextInfoIndex(destino, sugg, {}, null, false, null, { banner: pp, title: 'ꕥ Invitación', body: '✿ New invitation to the Sokect.', redes: global.db.data.settings[client.user.id.split(':')[0] + "@s.whatsapp.net"].link });
       } catch {}
     }    
-    await client.reply(m.chat, '❀ El enlace fue enviado correctamente. ¡Gracias por tu invitación! ฅ^•ﻌ•^ฅ', m);
+    return await client.reply(m.chat, '❀ El enlace fue enviado correctamente. ¡Gracias por tu invitación! ฅ^•ﻌ•^ฅ', m);
     user.jointime = new Date() * 1;
   },
 };

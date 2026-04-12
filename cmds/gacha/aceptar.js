@@ -62,7 +62,7 @@ export default {
           if (db.users?.[regalo.sender]?.favorite === id) delete db.users[regalo.sender].favorite
         }
         const name = db.users[regalo.to]?.name || regalo.to.split('@')[0]
-        await client.sendMessage(chatId, { text: `「✿」 Has regalado con éxito todos tus personajes a ${name}!\n\n> ❏ Personajes regalados: ${regalo.count}\n> ⴵ Valor total: ${regalo.value.toLocaleString()}` }, { quoted: m })
+        return await client.sendMessage(chatId, { text: `「✿」 Has regalado con éxito todos tus personajes a ${name}!\n\n> ❏ Personajes regalados: ${regalo.count}\n> ⴵ Valor total: ${regalo.value.toLocaleString()}` }, { quoted: m })
         chatData.regalosPendientes = chatData.regalosPendientes.filter(r => r !== regalo)
         return
       }

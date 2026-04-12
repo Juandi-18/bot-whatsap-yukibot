@@ -37,7 +37,7 @@ export default {
 > ❀ Vistas › *${vistas}*
 > ✩ Publicado › *${videoInfo.ago || 'Desconocido'}*
 > ❒ Enlace › *${url}*`
-          await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
+          return await client.sendMessage(m.chat, { image: thumbBuffer, caption: infoMessage }, { quoted: m })
         }
       } catch (err) {
       }
@@ -46,9 +46,9 @@ export default {
         return m.reply('《✧》 No se pudo descargar el *audio*, intenta más tarde.')
       }
       const audioBuffer = await getBuffer(audio.url)
-      await client.sendMessage(m.chat, { audio: audioBuffer, fileName: `${title || 'audio'}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
+      return await client.sendMessage(m.chat, { audio: audioBuffer, fileName: `${title || 'audio'}.mp3`, mimetype: 'audio/mpeg' }, { quoted: m })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

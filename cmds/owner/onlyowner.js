@@ -35,7 +35,7 @@ const onlyowner = {
                 return client.reply(m.chat, `《✧》 El Modo Privado *ya estaba Activado*. ♡`, m);
             }
             settings.onlyOwnerMode = true;
-            await client.reply(m.chat, `「✿」*Modo Privado Activado* ◢\n\n➩ Ahora solo responderé a mis dueños. ♡`, m);
+            return await client.reply(m.chat, `「✿」*Modo Privado Activado* ◢\n\n➩ Ahora solo responderé a mis dueños. ♡`, m);
             
         } else if (choice === 'off') {
             // Verificamos si ya estaba desactivado
@@ -43,7 +43,7 @@ const onlyowner = {
                 return client.reply(m.chat, `《✧》 El Modo Privado *ya estaba Desactivado*. ♡`, m);
             }
             settings.onlyOwnerMode = false;
-            await client.reply(m.chat, `「✿」*Modo Privado Desactivado* ◢\n\n➩ Ahora le responderé a todos. ♡`, m);
+            return await client.reply(m.chat, `「✿」*Modo Privado Desactivado* ◢\n\n➩ Ahora le responderé a todos. ♡`, m);
             
         } else {
             return client.reply(m.chat, `ꕤ Opción no válida. Por favor, usa *on* o *off*.`, m);

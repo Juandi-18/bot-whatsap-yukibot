@@ -33,6 +33,6 @@ export default {
     targetData.bank += cantidad
     if (isNaN(senderData.bank)) senderData.bank = 0
     let name = global.db.data.users[who]?.name || who.split('@')[0]
-    await client.sendMessage(chatId, { text: `❀ Transferiste *¥${cantidad.toLocaleString()} ${monedas}* a *${name}*\n> Ahora tienes *¥${senderData.bank.toLocaleString()} ${monedas}* en tu banco.`, mentions: [who], }, { quoted: m })
+    return await client.sendMessage(chatId, { text: `❀ Transferiste *¥${cantidad.toLocaleString()} ${monedas}* a *${name}*\n> Ahora tienes *¥${senderData.bank.toLocaleString()} ${monedas}* en tu banco.`, mentions: [who], }, { quoted: m })
   }
 }

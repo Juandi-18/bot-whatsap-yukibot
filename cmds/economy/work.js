@@ -18,7 +18,7 @@ export default {
     const rsl = Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000
     user.coins = user.coins || 0
     user.coins += rsl
-    await client.sendMessage(m.chat, { text: `❀ ${pickRandom(trabajo)} *¥${rsl.toLocaleString()} ${monedas}*.`, }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: `❀ ${pickRandom(trabajo)} *¥${rsl.toLocaleString()} ${monedas}*.`, }, { quoted: m })
   }
 }
 

@@ -26,14 +26,14 @@ export default {
       const media = mediaList[0]
       const caption = `ꕥ Resultados para » ${tag}`
       if (media.endsWith('.mp4')) {
-        await client.sendMessage(m.chat, { video: { url: media }, caption, mentions: [m.sender] })
+        return await client.sendMessage(m.chat, { video: { url: media }, caption, mentions: [m.sender] })
       } else {
-        await client.sendMessage(m.chat, { image: { url: media }, caption, mentions: [m.sender] })
+        return await client.sendMessage(m.chat, { image: { url: media }, caption, mentions: [m.sender] })
       }
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   }
 }

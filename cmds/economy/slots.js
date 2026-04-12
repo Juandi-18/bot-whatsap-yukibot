@@ -40,7 +40,7 @@ ${x[0]} : ${y[0]} : ${z[0]}
 ${x[1]} : ${y[1]} : ${z[1]}
 ${x[2]} : ${y[2]} : ${z[2]}
 ────────`
-        await client.sendMessage(m.chat, { text: animationText, edit: key }, { quoted: m })
+        return await client.sendMessage(m.chat, { text: animationText, edit: key }, { quoted: m })
         await delay(300)
       }
     }
@@ -65,7 +65,7 @@ ${x[1]} : ${y[1]} : ${z[1]}
 ${x[2]} : ${y[2]} : ${z[2]}
 ────────
 ${resultado}`
-    await client.sendMessage(m.chat, { text: finalText, edit: key }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: finalText, edit: key }, { quoted: m })
   }
 }
 

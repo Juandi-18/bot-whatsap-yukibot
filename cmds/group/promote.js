@@ -13,9 +13,9 @@ export default {
       if (participant?.admin)
         return client.sendMessage(m.chat, { text: `《✧》 *@${who.split('@')[0]}* ya es administrador del grupo!`, mentions: [who] }, { quoted: m })
       await client.groupParticipantsUpdate(m.chat, [who], 'promote')
-      await client.sendMessage(m.chat, { text: `✿ *@${who.split('@')[0]}* ha sido promovido a administrador del grupo!`, mentions: [who] }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: `✿ *@${who.split('@')[0]}* ha sido promovido a administrador del grupo!`, mentions: [who] }, { quoted: m })
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 };

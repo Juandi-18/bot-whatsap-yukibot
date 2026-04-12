@@ -89,7 +89,7 @@ export default {
       if (global.db.data.users?.[target]?.favorite === stolenId) {
         delete global.db.data.users[target].favorite
       }
-      await m.reply(`❀ *${robberName}* ha robado a *${charName}* del harem de *${targetName}*.`)
+      return await m.reply(`❀ *${robberName}* ha robado a *${charName}* del harem de *${targetName}*.`)
     } catch (e) {
       return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

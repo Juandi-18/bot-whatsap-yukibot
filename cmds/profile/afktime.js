@@ -30,7 +30,7 @@ coins += Math.floor(Math.random() * (1500 - 300 + 1)) + 300
 user.coins += coins
 const tiempo = formatTiempo(ms)
 const recompensa = coins > 0 ? `\n> ○ Recompensa » *${coins} ${currency}*` : ''
-await client.reply(m.chat, `ꕥ *${global.db.data.users[m.sender].name || 'Usuario'}* Dejaste de estar inactivo.\n> ○ Motivo » *${user.afkReason || 'sin especificar'}*\n> ○ Tiempo inactivo » *${tiempo}* ${recompensa}`, m)
+return await client.reply(m.chat, `ꕥ *${global.db.data.users[m.sender].name || 'Usuario'}* Dejaste de estar inactivo.\n> ○ Motivo » *${user.afkReason || 'sin especificar'}*\n> ○ Tiempo inactivo » *${tiempo}* ${recompensa}`, m)
 user.afk = -1
 user.afkReason = ''
 }
@@ -52,5 +52,5 @@ const target = global.db.data.chats[m.chat].users[jid]
 if (!target || typeof target.afk !== 'number' || target.afk < 0) continue
 const ms = Date.now() - target.afk
 const tiempo = formatTiempo(ms)
-await client.reply(m.chat,`ꕥ El usuario *${global.db.data.users[jid].name || 'Usuario'}* está AFK.\n> ○ Motivo » *${target.afkReason || 'sin especificar'}*\n> ○ Tiempo inactivo » *${tiempo}*`, m)
+return await client.reply(m.chat,`ꕥ El usuario *${global.db.data.users[jid].name || 'Usuario'}* está AFK.\n> ○ Motivo » *${target.afkReason || 'sin especificar'}*\n> ○ Tiempo inactivo » *${tiempo}*`, m)
 }}

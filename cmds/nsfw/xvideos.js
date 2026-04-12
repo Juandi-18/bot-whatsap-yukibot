@@ -23,14 +23,14 @@ export default {
 ≡ Likes : ${likes || "Desconocidos"}
 ≡ Des-Likes : ${deslikes || "Desconocidos"}
 ≡ Vistas : ${views || "Desconocidas"}` }
-        await client.sendMessage(m.chat, mensaje, { quoted: m })
+        return await client.sendMessage(m.chat, mensaje, { quoted: m })
         return
       }
       const res = await search(encodeURIComponent(query))
       if (!res.length) return m.reply("《✧》 No se encontraron resultados.")
       const list = res.slice(0, 10).map((v, i) => `${i + 1}\n≡ Título : ${v.title}\n≡ Link : ${v.url}`).join("\n\n")
       const caption = `乂 ¡XVIDEOS - SEARCH! 乂\n\n${list}\n\n> » Usa directamente la URL de uno de los vídeos para descargarlo.`
-      await client.sendMessage(m.chat, { text: caption }, { quoted: m })
+      return await client.sendMessage(m.chat, { text: caption }, { quoted: m })
     } catch (e) {
       return m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

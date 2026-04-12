@@ -66,7 +66,7 @@ export default {
 ❒ *${desar === 'Hombre' ? 'Dueño' : desar === 'Mujer' ? 'Dueña' : 'Dueño(a)'} ›* ${owner ? (!isNaN(owner.replace(/@s\.whatsapp\.net$/, '')) ? `@${owner.split('@')[0]}` : owner) : "Oculto por privacidad"}
 
 > \`Enlace:\` ${link}`.trim()
-await client.sendMessage(m.chat, banner.includes('.mp4') || banner.includes('.webm') ? {
+return await client.sendMessage(m.chat, banner.includes('.mp4') || banner.includes('.webm') ? {
             video: { url: banner },
             gifPlayback: true,
             caption: message,

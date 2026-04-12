@@ -47,7 +47,7 @@ export default {
 ◆ *Módulos Nativos* › ${format(process.memoryUsage().external)}
 ◆ *Buffers de Datos* › ${format(process.memoryUsage().arrayBuffers)}`
     const mensajeEstado = `${estadoBot}\n\n${estadoServidor}`
-    await client.reply(m.chat, mensajeEstado, m)
+    return await client.reply(m.chat, mensajeEstado, m)
   }
 }
 

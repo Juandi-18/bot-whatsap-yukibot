@@ -23,6 +23,6 @@ export default {
         const author = w.by ? `\n> » Por: @${w.by.split('@')[0]}` : ''
         return `\`#${index}\` » ${w.reason}\n> » Fecha: ${w.timestamp}${author}`
       }).join('\n')
-    await client.reply(m.chat, `✐ Advertencias de @${userId.split('@')[0]} (${name}):\n> ✧ Total de advertencias: \`${total}\`\n\n${warningList}`, m, { mentions: [userId, ...user.warnings.map(w => w.by).filter(Boolean)] })
+    return await client.reply(m.chat, `✐ Advertencias de @${userId.split('@')[0]} (${name}):\n> ✧ Total de advertencias: \`${total}\`\n\n${warningList}`, m, { mentions: [userId, ...user.warnings.map(w => w.by).filter(Boolean)] })
   },
 };

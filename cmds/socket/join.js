@@ -15,15 +15,15 @@ export default {
     try {
       const inviteCode = match[1]
       await client.groupAcceptInvite(inviteCode)
-      await client.reply(m.chat, `❀ ${config.botname} se ha unido exitosamente al grupo.`, m)
+      return await client.reply(m.chat, `❀ ${config.botname} se ha unido exitosamente al grupo.`, m)
     } catch (e) {
       const errMsg = String(e.message || e)
       if (errMsg.includes('not-authorized') || errMsg.includes('requires-admin')) {
-        await m.reply('《✧》 La unión requiere aprobación de administrador. Espera a que acepten tu solicitud.')
+        return await m.reply('《✧》 La unión requiere aprobación de administrador. Espera a que acepten tu solicitud.')
       } else if (errMsg.includes('not-in-group') || errMsg.includes('removed')) {
-        await m.reply('《✧》 No se pudo unir al grupo porque el bot fue eliminado recientemente.')
+        return await m.reply('《✧》 No se pudo unir al grupo porque el bot fue eliminado recientemente.')
       } else {
-        await m.reply('《✧》 No se pudo unir al grupo, verifica el enlace o los permisos.')
+        return await m.reply('《✧》 No se pudo unir al grupo, verifica el enlace o los permisos.')
       }
     }
   },

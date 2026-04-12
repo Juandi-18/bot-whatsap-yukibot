@@ -35,11 +35,11 @@ export default {
           const audioJson = await audioRes.json()
           const audioUrl = audioJson?.data?.play
           if (audioUrl) {
-            await client.sendMessage(m.chat, { audio: { url: audioUrl }, mimetype: 'audio/mp4', fileName: 'tiktok_audio.mp4' }, { quoted: m })
+            return await client.sendMessage(m.chat, { audio: { url: audioUrl }, mimetype: 'audio/mp4', fileName: 'tiktok_audio.mp4' }, { quoted: m })
           }
         } else {
           const videoUrl = Array.isArray(dl) ? dl[0] : dl
-          await client.sendMessage(m.chat, { video: { url: videoUrl }, caption }, { quoted: m })
+          return await client.sendMessage(m.chat, { video: { url: videoUrl }, caption }, { quoted: m })
         }
       } else {
         const validResults = json.data?.filter(v => v.dl)
@@ -62,7 +62,7 @@ export default {
         await client.sendAlbumMessage(m.chat, medias, { quoted: m })
       }
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

@@ -26,6 +26,6 @@ export default {
       if (botType === 'Sub Bot') {
         startSubBot(m, client, caption, false, phone, chatId, {}, true)
       }
-    await client.reply(m.chat, caption, m)
+    return await client.reply(m.chat, caption, m)
   },
 };

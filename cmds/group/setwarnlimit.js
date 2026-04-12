@@ -16,6 +16,6 @@ export default {
     }
     chat.warnLimit = limit
     chat.expulsar = true
-    await m.reply(`✐ Límite de advertencias establecido en \`${limit}\` para este grupo.\n> ❖ Los usuarios serán eliminados automáticamente al alcanzar este límite.`)
+    return await m.reply(`✐ Límite de advertencias establecido en \`${limit}\` para este grupo.\n> ❖ Los usuarios serán eliminados automáticamente al alcanzar este límite.`)
   },
 };

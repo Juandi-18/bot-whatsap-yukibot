@@ -26,6 +26,6 @@ export default {
       report += `*❏ ${fecha}*\n`
       report += `\t» Mensajes: \`${d.msgs || 0}\`, Comandos: \`${d.cmds || 0}\`\n`
     }
-    await client.reply(chatId, report, m, { mentions: [who] })
+    return await client.reply(chatId, report, m, { mentions: [who] })
   }
 }

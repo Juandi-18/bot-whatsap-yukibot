@@ -25,7 +25,7 @@ export default {
     const tieReward = Math.floor(Math.random() * (1500 - 800 + 1)) + 800
     if (result === 'win') {
       user.coins += reward
-      await client.sendMessage(chatId, { text: `ꕥ Ganaste.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* ¥${reward.toLocaleString()}` }, { quoted: m })
+      return await client.sendMessage(chatId, { text: `ꕥ Ganaste.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* ¥${reward.toLocaleString()}` }, { quoted: m })
     } else if (result === 'lose') {
       const total = user.coins + user.bank
       const actualLoss = Math.min(loss, total)
@@ -36,10 +36,10 @@ export default {
         user.coins = 0
         user.bank = Math.max(0, user.bank - remaining)
       }
-      await client.sendMessage(chatId, { text: `ꕥ Perdiste.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* -¥${actualLoss.toLocaleString()}` }, { quoted: m })
+      return await client.sendMessage(chatId, { text: `ꕥ Perdiste.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* -¥${actualLoss.toLocaleString()}` }, { quoted: m })
     } else {
       user.coins += tieReward
-      await client.sendMessage(chatId, { text: `ꕥ Empate.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* +¥${tieReward.toLocaleString()}` }, { quoted: m })
+      return await client.sendMessage(chatId, { text: `ꕥ Empate.\n\n> ✿ *Tu elección ›* ${userChoice}\n> ✿ *${botname} eligió ›* ${botChoice}\n> ✿ *${monedas} ›* +¥${tieReward.toLocaleString()}` }, { quoted: m })
     }
     user.lastppt = Date.now() + 1 * 60 * 1000
   },

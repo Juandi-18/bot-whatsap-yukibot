@@ -26,6 +26,6 @@ export default {
 ⛁ Total › *¥${total.toLocaleString()} ${monedas}*
 
 > _Para proteger tu dinero, ¡depósitalo en el banco usando ${usedPrefix}deposit!_`
-    await client.sendMessage(chatId, { text: bal }, { quoted: m })
+    return await client.sendMessage(chatId, { text: bal }, { quoted: m })
   }
 };

@@ -19,10 +19,10 @@ const isGroupLink = linkRegex.test(m.text)
 const hasAllowedLink = allowedLinks.some(link => m.text.includes(link))
 const command = (m.command || '').toLowerCase();
 if (hasAllowedLink || !isGroupLink || !chat?.antilinks || isAdmin || !isBotAdmin || !isPrimary) return
-await client.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.key.participant }})
+return await client.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.key.participant }})
 if (!(command === 'invite')) {
 const isChannelLink = /whatsapp\.com\/channel\//i.test(m.text)
 const userName = global.db.data.users[m.sender]?.name || 'Usuario'
-await client.reply(m.chat, `> ꕥ Se ha eliminado a *${userName}* del grupo por \`Anti-Link\`, no permitimos enlaces de *${isChannelLink ? 'canales' : 'otros grupos'}*.`, null)
+return await client.reply(m.chat, `> ꕥ Se ha eliminado a *${userName}* del grupo por \`Anti-Link\`, no permitimos enlaces de *${isChannelLink ? 'canales' : 'otros grupos'}*.`, null)
 await client.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
 }}

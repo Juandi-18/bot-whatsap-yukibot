@@ -79,7 +79,7 @@ export default {
 
     } catch (e) {
       console.error(e);
-      await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
+      return await m.reply(`> Ha ocurrido un error crítico: *${e.message}*`);
     }
   }
 };

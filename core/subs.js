@@ -112,12 +112,14 @@ const sock = makeWASocket({
     let codeGen = await sock.requestPairingCode(phone, 'ABCD1234');
     codeGen = codeGen.match(/.{1,4}/g)?.join("-") || codeGen;
     const msg = await m.reply(caption)
+    return msg;
     const msgCode = await m.reply(codeGen);
+    return msgCode;
     delete commandFlags[senderId];
     setTimeout(async () => {
     try {
-    await client.sendMessage(chatId, { delete: msg.key });
-    await client.sendMessage(chatId, { delete: msgCode.key });
+    return await client.sendMessage(chatId, { delete: msg.key });
+    return await client.sendMessage(chatId, { delete: msgCode.key });
     } catch {}
     }, 60000);
     } catch (err) {
@@ -126,10 +128,11 @@ const sock = makeWASocket({
     if (qr && !isCode && client && chatId && commandFlags[senderId]) {
     try {
     const msgQR = await client.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption }, { quoted: m})
+    return msgQR;
     delete commandFlags[senderId]
     setTimeout(async () => {
     try {
-    await client.sendMessage(chatId, { delete: msgQR.key })
+    return await client.sendMessage(chatId, { delete: msgQR.key })
     } catch {}
     }, 60000)
     } catch (err) {

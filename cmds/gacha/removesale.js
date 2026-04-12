@@ -19,7 +19,7 @@ export default {
       delete chat.sales[idRemove]
       m.reply(`❀ *${args.join(' ')}* ha sido eliminado de la lista de ventas.`)
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

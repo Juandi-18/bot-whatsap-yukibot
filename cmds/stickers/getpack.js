@@ -81,7 +81,7 @@ export default {
         }
       }))
 
-      await client.sendMessage(m.chat, { stickerPack: { name: pack.name, publisher: `${pack.author} (${name})`, description: pack.desc, cover, stickers: stickerResults } }, { quoted: m })
+      return await client.sendMessage(m.chat, { stickerPack: { name: pack.name, publisher: `${pack.author} (${name})`, description: pack.desc, cover, stickers: stickerResults } }, { quoted: m })
       await m.react('✔️')
     } catch (e) {
       await m.react('✖️')

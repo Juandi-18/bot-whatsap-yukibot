@@ -49,6 +49,6 @@ export default {
       report += `\n> Para ver la siguiente página › *${prefix+command} ${daysArg} ${page+1}*`
     }
 
-    await client.reply(chatId,report,m,{mentions})
+    return await client.reply(chatId,report,m,{mentions})
   }
 }

@@ -16,7 +16,7 @@ export default {
       return m.reply('《✧》 Este comando solo puede ser usado desde una instancia de Sub-Bot.')
     }
     try {
-      await m.reply('《✧》 Cerrando sesión del Socket...')
+      return await m.reply('《✧》 Cerrando sesión del Socket...')
       await client.logout()
       setTimeout(() => {
         if (fs.existsSync(sessionPath)) {
@@ -28,7 +28,7 @@ export default {
         m.reply(`《✧》 Sesión finalizada correctamente.\nPuedes reconectarte usando *${usedPrefix}code*`)
       }, 3000)
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 };

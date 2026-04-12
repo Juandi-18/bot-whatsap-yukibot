@@ -164,9 +164,9 @@ command: ['angry','enojado','enojada','bleh','bored','aburrido','aburrida','clap
       const response = await fetch(`https://api.stellarwa.xyz/sfw/interaction?inter=${currentCommand}`)
       const json = await response.json()
       const { result } = json
-      await client.sendMessage(m.chat, { video: { url: result }, gifPlayback: true, caption, mentions: [who, m.sender] }, { quoted: m })
+      return await client.sendMessage(m.chat, { video: { url: result }, gifPlayback: true, caption, mentions: [who, m.sender] }, { quoted: m })
     } catch (e) {
-    await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+    return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 };

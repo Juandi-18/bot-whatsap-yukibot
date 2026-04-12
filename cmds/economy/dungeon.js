@@ -80,7 +80,7 @@ export default {
       message = pickRandom(neutralMessages)
     }
     user.lastdungeon = Date.now() + 17 * 60 * 1000
-    await client.sendMessage(m.chat, { text: `「✿」 ${message}` }, { quoted: m })
+    return await client.sendMessage(m.chat, { text: `「✿」 ${message}` }, { quoted: m })
   },
 }
 

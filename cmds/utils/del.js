@@ -21,7 +21,7 @@ const del = {
                 };
 
                 try {
-                    await client.sendMessage(m.chat, { delete: keyToDelete });
+                    return await client.sendMessage(m.chat, { delete: keyToDelete });
                 } catch (err) {
                     return client.reply(m.chat, "《✧》 No pude borrar el mensaje. Asegúrate de que soy Administrador del grupo. ♡", m);
                 }
@@ -52,7 +52,7 @@ const del = {
             for (let msg of toDelete) {
                 await new Promise(resolve => setTimeout(resolve, 400)); 
                 try {
-                    await client.sendMessage(m.chat, { delete: msg.key });
+                    return await client.sendMessage(m.chat, { delete: msg.key });
                 } catch (err) {
                     falloPorPermisos = true;
                     break; 

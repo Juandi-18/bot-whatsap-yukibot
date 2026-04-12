@@ -55,9 +55,9 @@ export default {
         msg += `» *${c.name}* (${record.value.toLocaleString()}) • ${status}.\n`
       }
       msg += `\n> ⌦ _Página *1* de *1*_`
-      await client.reply(m.chat, msg.trim(), m)
+      return await client.reply(m.chat, msg.trim(), m)
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

@@ -44,7 +44,7 @@ export default {
       } else {
         msg = `*Actualización completada*\n\n${stdout}`
       }
-      await client.sendMessage(m.key.remoteJid, { text: msg }, { quoted: m })
+      return await client.sendMessage(m.key.remoteJid, { text: msg }, { quoted: m })
     })
   }
 }

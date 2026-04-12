@@ -36,7 +36,7 @@ export default {
     if (user.health < 0) user.health = 0
     let msg = `「✿」 ${narration} *${reward.toLocaleString()} ${monedas}*`
     if (bonusMsg) msg += `\n${bonusMsg}`
-    await client.reply(m.chat, msg, m)
+    return await client.reply(m.chat, msg, m)
   },
 };
 

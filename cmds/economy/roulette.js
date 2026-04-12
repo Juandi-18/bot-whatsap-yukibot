@@ -30,10 +30,10 @@ export default {
     if (resultColor === color) {
       const reward = amount * (resultColor === 'green' ? 14 : 2)
       user.coins += reward
-      await client.sendMessage(chatId, { text: `「✿」 La ruleta salió en *${resultColor}* y has ganado *¥${reward.toLocaleString()} ${currency}*.`, mentions: [senderId] }, { quoted: m })
+      return await client.sendMessage(chatId, { text: `「✿」 La ruleta salió en *${resultColor}* y has ganado *¥${reward.toLocaleString()} ${currency}*.`, mentions: [senderId] }, { quoted: m })
     } else {
       user.coins -= amount
-      await client.sendMessage(chatId, { text: `「✿」 La ruleta salió en *${resultColor}* y has perdido *¥${amount.toLocaleString()} ${currency}*.`, mentions: [senderId] }, { quoted: m })
+      return await client.sendMessage(chatId, { text: `「✿」 La ruleta salió en *${resultColor}* y has perdido *¥${amount.toLocaleString()} ${currency}*.`, mentions: [senderId] }, { quoted: m })
     }
   },
 }

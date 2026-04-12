@@ -74,10 +74,10 @@ export default {
       const isAnimated = quoted.msg && quoted.msg.isAnimated;      
       if (isAnimated) {
         const mp4Buffer = await webp2mp4(buffer);
-        await client.sendMessage(m.chat, { video: mp4Buffer, caption: 'ꕥ *Aquí tienes ฅ^•ﻌ•^ฅ*', gifPlayback: true }, { quoted: m });
+        return await client.sendMessage(m.chat, { video: mp4Buffer, caption: 'ꕥ *Aquí tienes ฅ^•ﻌ•^ฅ*', gifPlayback: true }, { quoted: m });
       } else {
         const pngBuffer = await webp2png(buffer);
-        await client.sendMessage(m.chat, { image: pngBuffer, caption: 'ꕥ *Aquí tienes ฅ^•ﻌ•^ฅ*' }, { quoted: m });
+        return await client.sendMessage(m.chat, { image: pngBuffer, caption: 'ꕥ *Aquí tienes ฅ^•ﻌ•^ฅ*' }, { quoted: m });
       }      
       await m.react('✔️');
     } catch (error) {

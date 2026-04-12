@@ -31,6 +31,6 @@ export default {
     }
     const realIndex = total - index
     user.warnings.splice(realIndex, 1)
-    await client.reply(m.chat, `ꕥ Se ha eliminado la advertencia #${index} del usuario @${targetId.split('@')[0]} (${name}).`, m, { mentions: [targetId] })
+    return await client.reply(m.chat, `ꕥ Se ha eliminado la advertencia #${index} del usuario @${targetId.split('@')[0]} (${name}).`, m, { mentions: [targetId] })
   },
 }

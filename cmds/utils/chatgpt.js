@@ -40,10 +40,10 @@ export default {
         }
       }
       if (!responseText) return client.reply(m.chat, '《✧》 No se pudo obtener una *respuesta* válida')
-      await client.sendMessage(m.chat, { text: responseText.trim(), edit: key })
+      return await client.sendMessage(m.chat, { text: responseText.trim(), edit: key })
       await m.react('✔️')
     } catch (e) {
-      await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }
   },
 }

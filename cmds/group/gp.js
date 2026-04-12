@@ -107,7 +107,7 @@ export default {
       // Si te da error de 'dev is not defined', cámbialo por un texto como 'Desarrollador'
       const footerText = typeof dev !== 'undefined' ? dev : 'YukiBot Info'; 
 
-      await client.sendContextInfoIndex(m.chat, message.trim(), {}, null, false, mentions, { banner: groupBanner, title: groupName, body: footerText, redes: botSettings.link })
+      return await client.sendContextInfoIndex(m.chat, message.trim(), {}, null, false, mentions, { banner: groupBanner, title: groupName, body: footerText, redes: botSettings.link })
     } catch (e) {
       await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`)
     }

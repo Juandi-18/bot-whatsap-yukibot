@@ -57,8 +57,9 @@ export default async (client, m) => {
     groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || []
   }  
   // --- MEJORA EN DETECCIÓN DE ADMINS ---
-  const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(botJid)) : false
-  const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(sender)) : false
+  const botNumber = client.decodeJid(client.user.id)
+  const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.id.includes(botNumber.split('@')[0])) : false
+  const isAdmins = m.isGroup ? groupAdmins.some(p => p.id.includes(sender.split('@')[0])) : false
   const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
   // settings.onlyOwnerMode es la variable que controlaremos con el comando
   if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) {

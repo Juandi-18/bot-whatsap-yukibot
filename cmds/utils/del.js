@@ -4,6 +4,13 @@ const del = {
     isAdmin: true, 
     run: async (client, m, args, usedPrefix, command) => {
         try {
+            // --- NUEVO: AVISO SI NO HAY ARGUMENTOS ---
+            if (!m.quoted && (!args[0] || isNaN(parseInt(args[0])))) {
+                return client.reply(m.chat, "《✧》 Elija la cantidad de mensajes a eliminar o responda a un mensaje para eliminarlo. ♡", m);
+            }
+
+            const botNumber = client.user.id.split(':')[0]; 
+
             // 1. Borrado por RESPUESTA (Respondiendo a un mensaje)
             if (m.quoted && !args[0]) {
                 const keyToDelete = {
@@ -16,7 +23,6 @@ const del = {
                 try {
                     await client.sendMessage(m.chat, { delete: keyToDelete });
                 } catch (err) {
-                    // Si WhatsApp rechaza el borrado, es 100% seguro que faltan permisos
                     return client.reply(m.chat, "《✧》 No pude borrar el mensaje. Asegúrate de que soy Administrador del grupo. ♡", m);
                 }
                 return;
@@ -48,7 +54,6 @@ const del = {
                 try {
                     await client.sendMessage(m.chat, { delete: msg.key });
                 } catch (err) {
-                    // Si falla un borrado de otra persona, detenemos el ciclo y marcamos el error
                     falloPorPermisos = true;
                     break; 
                 }

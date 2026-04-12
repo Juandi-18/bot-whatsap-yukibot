@@ -3,11 +3,11 @@ const onlyowner = {
     category: 'owner',
     // Mantenemos esto por seguridad del motor del bot
     isOwner: true, 
-    run: async (client, m, args) => {
+    run: async (client, m, args, usedPrefix, command) => {
         const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net';
         const sender = m.sender;
 
-        // 1. DEFINIR QUIÉNES SON LOS DUEÑOS (Igual que en tu main.js)
+        // 1. DEFINIR QUIÉNES SON LOS DUEÑOS
         const settings = global.db.data.settings[botJid] || {};
         const isOwners = [
             botJid, 
@@ -17,26 +17,36 @@ const onlyowner = {
 
         const isBot = m.key.fromMe; // Verifica si el mensaje viene del propio bot
 
-        // 2. VALIDACIÓN DE SEGURIDAD PERSONALIZADA
+        // 2. VALIDACIÓN DE SEGURIDAD
         if (!isOwners && !isBot) {
-            return client.reply(m.chat, `❌ Solo el bot o el dueño pueden usar este comando`, m);
+            return client.reply(m.chat, `《✧》 *Error de permisos*\nSolo mi dueño o yo podemos usar este comando. ♡`, m);
         }
 
-        // 3. LÓGICA DEL COMANDO (Solo llega aquí si es dueño o el bot)
+        // 3. LÓGICA DEL COMANDO
         if (!args || args.length === 0 || !args[0]) {
-            return client.reply(m.chat, `🔒 *Estado actual:* ${settings.onlyOwnerMode ? 'ACTIVADO' : 'DESACTIVADO'}\n\nUso correcto:\n*!onlyowner on*\n*!onlyowner off*`, m);
+            return client.reply(m.chat, `「✿」*Modo Privado* ◢\n\n➩ *Estado ›* ${settings.onlyOwnerMode ? 'Activado' : 'Desactivado'}\n\nꕤ *Uso correcto:*\n> *${usedPrefix + command} on*\n> *${usedPrefix + command} off*`, m);
         }
 
         const choice = args[0].toLowerCase();
 
         if (choice === 'on') {
+            // Verificamos si ya estaba activado
+            if (settings.onlyOwnerMode === true) {
+                return client.reply(m.chat, `《✧》 El Modo Privado *ya estaba Activado*. ♡`, m);
+            }
             settings.onlyOwnerMode = true;
-            await client.reply(m.chat, `✅ **Modo Privado ACTIVADO.**\nAhora el bot solo responderá a dueños.`, m);
+            await client.reply(m.chat, `「✿」*Modo Privado Activado* ◢\n\n➩ Ahora solo responderé a mis dueños. ♡`, m);
+            
         } else if (choice === 'off') {
+            // Verificamos si ya estaba desactivado
+            if (!settings.onlyOwnerMode) {
+                return client.reply(m.chat, `《✧》 El Modo Privado *ya estaba Desactivado*. ♡`, m);
+            }
             settings.onlyOwnerMode = false;
-            await client.reply(m.chat, `✅ **Modo Privado DESACTIVADO.**\nEl bot ahora es público.`, m);
+            await client.reply(m.chat, `「✿」*Modo Privado Desactivado* ◢\n\n➩ Ahora le responderé a todos. ♡`, m);
+            
         } else {
-            await client.reply(m.chat, `⚠️ Opción no válida. Usa *on* o *off*.`, m);
+            return client.reply(m.chat, `ꕤ Opción no válida. Por favor, usa *on* o *off*.`, m);
         }
 
         // Guardar cambios en la base de datos

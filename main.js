@@ -62,8 +62,8 @@ export default async (client, m) => {
   const isAdmins = m.isGroup ? groupAdmins.some(p => p.id.startsWith(pureSenderNumber)) : false;
   const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
 
-  if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) {
-    return; 
+  // Comentado para pruebas
+// if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
   }
 
   // Plugins All
@@ -136,9 +136,7 @@ export default async (client, m) => {
     console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(moment().format('DD/MM/YY HH:mm:ss'))}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(sender)}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado')}\n${'│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(m.isGroup ? from : 'Chat Privado')}\n│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.gray(command ? command : 'No Command')}\n╰────────────────────────────···\n`));
   }
   
-  if (m.chat && !m.chat.endsWith('g.us')) {
-     const allowedInPrivateForUsers = ['help', 'menu', 'ping', 'speed', 'status', 'estado']
-     if (!isOwners && !allowedInPrivateForUsers.includes(command)) return;
+ 
   }
 
   if (chat?.isBanned && !(command === 'bot' && (text === 'on' || args[0] === 'on')) && !isOwners && !isAdmins && !m.key.fromMe) {

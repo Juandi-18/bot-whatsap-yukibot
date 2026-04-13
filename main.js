@@ -16,21 +16,14 @@ export default async (client, m) => {
   if (!m || !m.chat) return;
 
   // --- REGISTRO GLOBAL DE MENSAJES PARA EL COMANDO CLEAN ---
-  // Se coloca aquí para que guarde TODO antes de cualquier filtro
   if (!client.messages) client.messages = {};
   if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
   
-  // Guardamos el mensaje actual en el historial (texto, multimedia o comando)
   client.messages[m.chat].array.push(m);
   
-  // Mantenemos la memoria optimizada (máximo 100 mensajes)
   if (client.messages[m.chat].array.length > 100) {
     client.messages[m.chat].array.shift();
   }
-
-  // Log opcional para verificar en terminal que está leyendo mensajes normales
-  // console.log(chalk.gray(`[MEMORIA] Mensaje registrado en: ${m.chat}`));
-  // -------------------------------------------------------
 
   const sender = m.sender;
   let body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectReply?.selectedRowId || m.message.templateButtonReplyMessage?.selectedId || '';
@@ -46,6 +39,11 @@ export default async (client, m) => {
   const settings = global.db.data.settings[botJid] || {}
   const user = global.db.data.users[sender] ||= {}
   const users = chat.users[sender] || {}
+
+  // --- REGISTRO DE ACTIVIDAD (ESCUDO ANTIRROBO) ---
+  // Esta línea permite que el comando !steal sepa si el usuario ha estado activo
+  users.lastCmd = Date.now(); 
+
   const pushname = m.pushName || 'Sin nombre';
   
   let groupMetadata = null
@@ -56,17 +54,16 @@ export default async (client, m) => {
     groupName = groupMetadata?.subject || ''
     groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || []
   }  
-  // --- MEJORA EN DETECCIÓN DE ADMINS ---
- // --- MEJORA EN DETECCIÓN DE ADMINS (A PRUEBA DE MULTI-DISPOSITIVO) ---
-  const pureBotNumber = client.user.id.split(':')[0]; // Elimina el :15 del bot
-  const pureSenderNumber = sender.split(':')[0].split('@')[0]; // Elimina el :15 tuyo
+
+  const pureBotNumber = client.user.id.split(':')[0]; 
+  const pureSenderNumber = sender.split(':')[0].split('@')[0]; 
 
   const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.id.startsWith(pureBotNumber)) : false;
   const isAdmins = m.isGroup ? groupAdmins.some(p => p.id.startsWith(pureSenderNumber)) : false;
   const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
-  // settings.onlyOwnerMode es la variable que controlaremos con el comando
+
   if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) {
-    return; // Si el modo privado está ON y no eres dueño ni el bot, se detiene todo aquí.
+    return; 
   }
 
   // Plugins All
@@ -126,7 +123,6 @@ export default async (client, m) => {
     }
   }
 
-  // --- El bot ya guardó el mensaje arriba, así que si no es comando, aquí termina el flujo ---
   if (!match) return;
 
   let usedPrefix = (match[0] || [])[0] || '';
@@ -135,63 +131,53 @@ export default async (client, m) => {
   let text = args.join(' ');
   if (!command) return;
 
-  // Log de comandos en consola
-  const chatData = global.db.data.chats[from] || {};
-  const consolePrimary = chatData.primaryBot;
-  if (m.message || !consolePrimary || consolePrimary === botJid) {
+  // Log de comandos
+  if (m.message || !chatData.primaryBot || chatData.primaryBot === botJid) {
     console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(moment().format('DD/MM/YY HH:mm:ss'))}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(sender)}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado')}\n${'│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(m.isGroup ? from : 'Chat Privado')}\n│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.gray(command ? command : 'No Command')}\n╰────────────────────────────···\n`));
   }
   
-  // Validaciones de dueños y baneos
-  //if (!isOwners && settings.self) return;  
   if (m.chat && !m.chat.endsWith('g.us')) {
-     const allowedInPrivateForUsers = ['help', 'menu', 'ping', 'speed', 'status', 'estado'] // Lista resumida
+     const allowedInPrivateForUsers = ['help', 'menu', 'ping', 'speed', 'status', 'estado']
      if (!isOwners && !allowedInPrivateForUsers.includes(command)) return;
   }
-  // Ahora permitimos que Admins, Dueños o el Bot ignoren el baneo para usar "!bot on"
+
   if (chat?.isBanned && !(command === 'bot' && (text === 'on' || args[0] === 'on')) && !isOwners && !isAdmins && !m.key.fromMe) {
-      // Si el bot está desactivado y NO eres admin/dueño tratando de prenderlo, no respondas.
       return; 
   }
 
   const cmdData = global.comandos.get(command);
   if (!cmdData) {
-     if (settings.prefix === true) return;
-     await client.readMessages([m.key]);
-     return m.reply(`ꕤ El comando *${command}* no existe.`);
+      if (settings.prefix === true) return;
+      await client.readMessages([m.key]);
+      return m.reply(`ꕤ El comando *${command}* no existe.`);
   }
 
-  // Validación de Admins
-  // --- VALIDACIÓN DE PERMISOS UNIFICADA (ADMIN / DUEÑO / BOT) ---
   if (cmdData.isAdmin) {
-    const tienePermiso = isAdmins || isOwners || m.key.fromMe; // El "||" significa "O"
+    const tienePermiso = isAdmins || isOwners || m.key.fromMe;
       if (!tienePermiso) {
         return client.reply(m.chat, "❌ Solo Admins, el Dueño o el Bot pueden usar esto.", m);
       }
   }
 
-  // Validación de que el BOT sea admin para poder ejecutar (ej: kick, promote)
   if (cmdData.botAdmin && !isBotAdmins) {
       return client.reply(m.chat, "❌ *Error de permisos*\nNecesito ser Administrador del grupo para realizar esta acción.", m);
   }
-  // --------------------------------------------------------------
+
   try {
-     await client.readMessages([m.key]);
-     user.usedcommands = (user.usedcommands || 0) + 1;
-     users.stats[today].cmds++;
-     
-     // --- EJECUCIÓN Y CAPTURA DE RESPUESTA DEL BOT ---
-     const result = await cmdData.run(client, m, args, usedPrefix, command, text);
-     
-     // Si el comando devuelve el mensaje enviado (result), lo guardamos para el Clean
-     if (result && result.key) {
-        if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
-        client.messages[m.chat].array.push(result);
-     }
-     
+      await client.readMessages([m.key]);
+      user.usedcommands = (user.usedcommands || 0) + 1;
+      users.stats[today].cmds++;
+      
+      const result = await cmdData.run(client, m, args, usedPrefix, command, text);
+      
+      if (result && result.key) {
+         if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
+         client.messages[m.chat].array.push(result);
+      }
+      
   } catch (error) {
-     console.error("Error en ejecución:", error);
-     return await client.sendMessage(m.chat, { text: `《✧》 Error: ${error.message}` }, { quoted: m });
+      console.error("Error en ejecución:", error);
+      return await client.sendMessage(m.chat, { text: `《✧》 Error: ${error.message}` }, { quoted: m });
   }
   level(m);
 };

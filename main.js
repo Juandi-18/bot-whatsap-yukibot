@@ -21,9 +21,15 @@ export default async (client, m) => {
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
     // --- 2. REGISTRO DE MEMORIA Y FILTROS ANTI-BUCLE ---
+    // --- 2. REGISTRO DE MEMORIA ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
-    client.messages[chatJid].array.push(m);
+
+    // IMPORTANTE: Asegúrate de que NO haya filtros que solo guarden texto.
+    // Este código guarda TODO (Stickers, Imágenes, Texto, etc.)
+    client.messages[chatJid].array.push(m); 
+
+    // Mantener un límite razonable (ej. 100 mensajes)
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
     // Ajuste para WhatsApp Web: 

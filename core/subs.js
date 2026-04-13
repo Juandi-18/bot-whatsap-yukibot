@@ -35,40 +35,45 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
 
     sock.ev.on('creds.update', saveCreds)
 
-    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
-        
-        // --- LÓGICA DE VINCULACIÓN ---
-        if (connection !== 'open' && commandFlags[senderId]?.active) {
-            
-            // CASO A: CÓDIGO DE 8 DÍGITOS
-            if (isCode && phone) {
-                if (sock.isPairing) return; // Bloqueo si ya hay una petición
-                sock.isPairing = true;
+    // Busca esta parte dentro de sock.ev.on('connection.update', ...
+if (connection !== 'open' && commandFlags[senderId]?.active) {
+    
+    if (isCode && phone) {
+        if (sock.isPairing) return; 
+        sock.isPairing = true;
 
-                try {
-                    // Espera de 10 segundos para estabilizar la conexión (Evita Error 428)
-                    await new Promise(resolve => setTimeout(resolve, 10000)); 
+        console.log(chalk.yellow(`[ ✿ ] Intentando generar código para ${phone}...`));
+
+        try {
+            // Bajamos a 8 segundos para no agotar la paciencia del servidor
+            await new Promise(resolve => setTimeout(resolve, 8000)); 
+
+            // Verificamos si ya está registrado (si no, pedimos código)
+            if (!sock.authState.creds.registered) {
+                let codeGen = await sock.requestPairingCode(phone);
+                
+                if (codeGen) {
+                    codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
+                    console.log(chalk.magentaBright(`[ ✿ ] Código generado: ${codeGen}`));
+
+                    // ENVIAR EL MENSAJE (Sin filtros extra para asegurar que llegue)
+                    await client.sendMessage(chatId, { text: `${codeGen}` }, { quoted: m });
                     
-                    if (sock.ws.readyState === ws.OPEN) {
-                        let codeGen = await sock.requestPairingCode(phone);
-                        codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
-
-                        // Solo enviamos el código puro
-                        const msgCode = await client.sendMessage(chatId, { 
-                            text: `${codeGen}` 
-                        }, { quoted: m });
-
-                        delete commandFlags[senderId]; 
-
-                        setTimeout(async () => {
-                            try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
-                        }, 60000);
-                    }
-                } catch (err) { 
-                    console.error(chalk.red("Error Pairing Code:"), err.message);
-                    sock.isPairing = false; 
+                    // Limpiamos banderas
+                    delete commandFlags[senderId];
+                } else {
+                    console.log(chalk.red("[ ✿ ] WhatsApp no devolvió ningún código."));
                 }
-            } 
+            }
+        } catch (err) { 
+            console.error(chalk.red("[ ✿ ] Error al solicitar el código:"), err.message);
+            // Si sale "Connection Closed", avisamos al usuario
+            if (err.message.includes('Closed')) {
+                client.sendMessage(chatId, { text: "《✧》 WhatsApp cerró la conexión. Intenta de nuevo en 10 segundos. ♡" });
+            }
+            sock.isPairing = false; 
+        }
+    }
             
             // CASO B: CÓDIGO QR
             else if (qr && !isCode) {

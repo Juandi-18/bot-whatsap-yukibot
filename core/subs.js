@@ -32,40 +32,36 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
     sock.ev.on('creds.update', saveCreds)
 
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
-        if (connection === 'open') {
-            sock.userId = sock.user?.id?.split(':')[0]
-            if (!global.conns.find((c) => c.userId === sock.userId)) global.conns.push(sock)
-            console.log(chalk.green(`[ ✿ ] SUB-BOT conectado: ${sock.userId}`))
-            if (commandFlags[senderId]) delete commandFlags[senderId];
-        }
-
-        // --- LÓGICA DE ENVÍO DE CÓDIGO / QR ---
-        if (qr && commandFlags[senderId]?.active) {
-            if (isCode) {
-                // Generar código de 8 dígitos
+        
+        // --- LÓGICA DE VINCULACIÓN ---
+        if (connection !== 'open' && commandFlags[senderId]?.active) {
+            
+            // CASO A: CÓDIGO DE 8 DÍGITOS
+            if (isCode && phone) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    await new Promise(resolve => setTimeout(resolve, 3500)); // Espera a que el socket estabilice
                     let codeGen = await sock.requestPairingCode(phone);
                     codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
 
                     const msgCode = await client.sendMessage(chatId, { 
-                        text: `「✿」*CÓDIGO DE VINCULACIÓN* ◢\n\n➩ Código para: @${senderId.split('@')[0]}\n➩ Tu código es: *${codeGen}*\n\n> ꕤ Úsalo ahora. Se borrará en 1 minuto. ♡`,
+                        text: `「✿」*CÓDIGO DE VINCULACIÓN* ◢\n\n➩ Código para: @${senderId.split('@')[0]}\n➩ Tu código es: *${codeGen}*\n\n> ꕤ Úsalo en 'Vincular con el número de teléfono'. ♡`,
                         mentions: [senderId]
                     }, { quoted: m });
 
-                    delete commandFlags[senderId];
+                    delete commandFlags[senderId]; // Evita duplicados
 
                     setTimeout(async () => {
                         try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
                     }, 60000);
                 } catch (err) { console.error("Error Pairing Code:", err); }
-
-            } else {
-                // Generar QR
+            } 
+            
+            // CASO B: CÓDIGO QR
+            else if (qr && !isCode) {
                 try {
                     const msgQR = await client.sendMessage(chatId, { 
                         image: await qrcode.toBuffer(qr, { scale: 8 }), 
-                        caption: `「✿」*CÓDIGO QR* ◢\n\n➩ Escanea este código para vincularte.\n➩ Solicitado por: @${senderId.split('@')[0]}\n\n> ꕤ Se borrará en 1 minuto. ♡`,
+                        caption: `「✿」*CÓDIGO QR* ◢\n\n➩ Escanea este código para activar tu Sub-Bot.\n➩ Solicitado por: @${senderId.split('@')[0]}\n\n> ꕤ Se borrará en 1 minuto. ♡`,
                         mentions: [senderId]
                     }, { quoted: m });
 
@@ -76,6 +72,13 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
                     }, 60000);
                 } catch (err) { console.error("Error QR:", err); }
             }
+        }
+
+        if (connection === 'open') {
+            sock.userId = sock.user?.id?.split(':')[0]
+            if (!global.conns.find((c) => c.userId === sock.userId)) global.conns.push(sock)
+            console.log(chalk.green(`[ ✿ ] SUB-BOT conectado: ${sock.userId}`))
+            if (commandFlags[senderId]) delete commandFlags[senderId];
         }
 
         if (connection === 'close') {

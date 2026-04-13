@@ -132,24 +132,28 @@ async function startBot() {
 
     global.client = sock;
     
-    // --- LÓGICA DE CÓDIGO ÚNICO ---
-    if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
-        if (sock.pairingActive) return; // Si ya hay una solicitud activa, no hagas otra
-        sock.pairingActive = true;
+    /if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
+    if (sock.pairingActive) return; 
+    sock.pairingActive = true;
 
-        setTimeout(async () => {
-            try {
-                if (!sock.authState.creds.registered) {
-                    const pairing = await sock.requestPairingCode(phoneNumber);
-                    const codeBot = pairing?.match(/.{1,4}/g)?.join("-") || pairing;
-                    console.log(chalk.bold.white(chalk.bgMagenta(`\n ❀ CÓDIGO DE VINCULACIÓN: `)), chalk.bold.black(chalk.bgWhite(` ${codeBot} `)), `\n`);
-                }
-            } catch (err) {
-                console.log(chalk.red("Error al generar código:"), err);
-                sock.pairingActive = false;
+    // AUMENTAMOS A 15 SEGUNDOS
+    setTimeout(async () => {
+        try {
+            // Solo pedimos el código si el socket está conectado
+            if (!sock.authState.creds.registered) {
+                log.info("Enviando solicitud de código a WhatsApp...");
+                const pairing = await sock.requestPairingCode(phoneNumber);
+                const codeBot = pairing?.match(/.{1,4}/g)?.join("-") || pairing;
+                console.log(chalk.bold.white(chalk.bgMagenta(`\n ❀ CÓDIGO: ${codeBot} \n`)));
             }
-        }, 10000); // Espera de seguridad
-    }
+        } catch (err) {
+            console.log(chalk.red("Error Pairing Code:"), err.message);
+            sock.pairingActive = false;
+            // Si falla, reintentamos en 10 segundos automáticamente
+            setTimeout(() => startBot(), 10000);
+        }
+    }, 15000); 
+}
 
     sock.ev.on("creds.update", saveCreds);
 
@@ -209,7 +213,7 @@ setInterval(cleanCache, 3 * 60 * 60 * 1000);
 cleanCache();
 
 (async () => {
-    await loadBots();
+    // await loadBots();  <-- PONLE DOS SLASH AL PRINCIPIO
     global.loadDatabase();
     console.log(chalk.gray('[ ✿ ] Base de datos cargada.'));
     await startBot();

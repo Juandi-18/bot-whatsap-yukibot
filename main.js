@@ -15,19 +15,22 @@ seeCommands();
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
-    // --- 1. NORMALIZACIÓN DE IDs (Seguridad total) ---
+    // --- 1. NORMALIZACIÓN DE IDs ---
     const chatJid = client.decodeJid(m.chat);
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
-    // --- 2. REGISTRO DE MEMORIA (Para comando Clean) ---
+    // --- 2. REGISTRO DE MEMORIA Y FILTROS ANTI-BUCLE ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
     client.messages[chatJid].array.push(m);
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
-    // Ignorar mensajes de sistema o del propio bot para evitar bucles
-    if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16))) return;
+    // Ajuste para WhatsApp Web: 
+    // Solo ignoramos si el mensaje es de otro bot (BAE5) o sistema, 
+    // pero permitimos 3EB0 si el usuario es Owner (tú en WhatsApp Web).
+    const isMe = m.key.fromMe;
+    if (m.id.startsWith("BAE5") && m.id.length === 16) return; 
     
     // Inicializar DB y Antilink
     initDB(m, client);
@@ -89,34 +92,25 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
 │ ${chalk.bold.cyanBright('Comando')}: ${chalk.white.bgBlack(' ' + command + ' ')}
 ╰────────────────────────────···\n`));
 
-    // --- 8. FILTROS DE SEGURIDAD ---
-    if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
-    if (chat?.isBanned && !isOwners && !isAdmins && !m.key.fromMe) return;
+    // --- 8. FILTROS DE SEGURIDAD (CORREGIDOS PARA WEB) ---
+    // Si eres Owner, ignoramos las restricciones de baneo o modo solo dueño
+    if (settings.onlyOwnerMode && !isOwners) return; 
+    if (chat?.isBanned && !isOwners && !isAdmins) return;
 
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY EN MAIN.JS ---
-    if (chat.familyFriendly && !isOwners && !m.key.fromMe) {
-        
-        // A. Bloquear el intento de activar NSFW (Nuevo)
+    // --- 9. FILTRO FAMILY FRIENDLY ---
+    if (chat.familyFriendly && !isOwners) {
         if (command === 'nsfw' && (args[0] === 'on' || args[0] === '1')) {
-            return m.reply("⚠️ No puedes activar el modo NSFW porque el modo *Family Friendly* está encendido.\n> Desactiva primero el escudo familiar para realizar este cambio.");
+            return m.reply("⚠️ No puedes activar el modo NSFW porque el modo *Family Friendly* está encendido.");
         }
-
-        // B. Bloqueo de comandos de categoría NSFW
-        if (cmdData.category === 'nsfw') {
-            return m.reply("⚠️ El modo *Family Friendly* está activo. Comandos NSFW bloqueados.");
-        }
-
-        // C. Bloqueo específico de comandos de imagen
-        const imgCommands = ['imagen', 'img', 'image'];
-        if (imgCommands.includes(command)) {
-            return m.reply("⚠️ La búsqueda de imágenes está desactivada en este grupo.");
+        if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image'].includes(command)) {
+            return m.reply("⚠️ El modo *Family Friendly* está activo. Comandos bloqueados.");
         }
     }
 
-    // --- 10. VALIDACIÓN DE PERMISOS DEL COMANDO ---
+    // --- 10. VALIDACIÓN DE PERMISOS ---
     if (cmdData.isAdmin && !isAdmins && !isOwners) {
         return m.reply("《✧》 Solo Admins pueden usar este comando. ♡");
     }
@@ -125,9 +119,7 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
         return m.reply("《✧》 ¡Hazme Administrador del grupo primero! ♡");
     }
 
-    if (cmdData.isOwner && !isOwners) {
-        return; // Ignorar en silencio comandos de dueño si no lo es
-    }
+    if (cmdData.isOwner && !isOwners) return;
 
     // --- 11. EJECUCIÓN FINAL ---
     try {

@@ -12,6 +12,9 @@ import level from './cmds/level.js';
 // Cargamos los comandos al iniciar
 seeCommands();
 
+// --- LISTA NEGRA GLOBAL ---
+global.prohibitedWords = ['sexo', 'porn', 'hentai', 'xnx', 'xxx', 'nude', 'tetas', 'pene', 'culo', 'ass', 'erotico', 'pedofilia', 'gore', 'cp','r34','rule','rule34','boobs'];
+
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
@@ -20,22 +23,16 @@ export default async (client, m) => {
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
-    // --- 2. REGISTRO DE MEMORIA Y FILTROS ANTI-BUCLE ---
     // --- 2. REGISTRO DE MEMORIA ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
 
-    // IMPORTANTE: Asegúrate de que NO haya filtros que solo guarden texto.
-    // Este código guarda TODO (Stickers, Imágenes, Texto, etc.)
+    // Guarda TODO (Stickers, Imágenes, Texto, etc.) para que !del funcione con todo
     client.messages[chatJid].array.push(m); 
 
-    // Mantener un límite razonable (ej. 100 mensajes)
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
-    // Ajuste para WhatsApp Web: 
-    // Solo ignoramos si el mensaje es de otro bot (BAE5) o sistema, 
-    // pero permitimos 3EB0 si el usuario es Owner (tú en WhatsApp Web).
-    const isMe = m.key.fromMe;
+    // Filtros de bots y WhatsApp Web
     if (m.id.startsWith("BAE5") && m.id.length === 16) return; 
     
     // Inicializar DB y Antilink
@@ -98,25 +95,36 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
 │ ${chalk.bold.cyanBright('Comando')}: ${chalk.white.bgBlack(' ' + command + ' ')}
 ╰────────────────────────────···\n`));
 
-    // --- 8. FILTROS DE SEGURIDAD (CORREGIDOS PARA WEB) ---
-    // Si eres Owner, ignoramos las restricciones de baneo o modo solo dueño
+    // --- 8. FILTROS DE SEGURIDAD ---
     if (settings.onlyOwnerMode && !isOwners) return; 
     if (chat?.isBanned && !isOwners && !isAdmins) return;
 
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY (Bloqueo Total) ---
-    if (chat.familyFriendly) { // <-- Quitamos el "!isOwners" para que te afecte a ti también
+    // --- 9. FILTRO FAMILY FRIENDLY (Prioridad Máxima) ---
+    if (chat.familyFriendly) {
         
-        // A. Bloquear activación de NSFW
+        // A. Bloquear comandos de administración de NSFW
         if (command === 'nsfw' || command === 'modonsfw') {
-            return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivar el escudo familiar (!ff off) para poder usar estos comandos.");
+            return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios en el contenido sensible.");
         }
 
-        // B. Bloquear comandos de categoría NSFW
-        if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image'].includes(command)) {
-            return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. Todo el contenido sensible está bloqueado.");
+        // B. Bloquear categorías NSFW o comandos de imagen
+        if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image', 'pinterest'].includes(command)) {
+            return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. El contenido sensible está bloqueado.");
+        }
+
+        // C. Filtro de Búsqueda Inteligente (TikTok, YouTube, etc.)
+        const searchCommands = ['tiktok', 'tt', 'tts', 'yts', 'ytsearch', 'google'];
+        if (searchCommands.includes(command) && text) {
+            const isProhibited = global.prohibitedWords.some(word => 
+                new RegExp(`\\b${word}\\b`, 'i').test(text.toLowerCase())
+            );
+            
+            if (isProhibited) {
+                return m.reply("⚠️ Tu búsqueda contiene palabras restringidas por el filtro *Family Friendly*.");
+            }
         }
     }
 

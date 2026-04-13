@@ -100,13 +100,17 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY ---
+    // --- 9. FILTRO FAMILY FRIENDLY (Prioridad Máxima) ---
     if (chat.familyFriendly && !isOwners) {
-        if (command === 'nsfw' && (args[0] === 'on' || args[0] === '1')) {
-            return m.reply("⚠️ No puedes activar el modo NSFW porque el modo *Family Friendly* está encendido.");
+        
+        // A. Si intentan usar el comando para ACTIVAR el NSFW
+        if (command === 'nsfw' || command === 'modonsfw') {
+            return m.reply("⚠️ El modo *Family Friendly* está activo. Solo el **Dueño del Bot** puede desactivar el escudo familiar para permitir estos cambios.");
         }
+
+        // B. Si intentan usar cualquier comando de la categoría NSFW
         if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image'].includes(command)) {
-            return m.reply("⚠️ El modo *Family Friendly* está activo. Comandos bloqueados.");
+            return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. Los comandos NSFW y de búsqueda de imágenes están bloqueados.");
         }
     }
 

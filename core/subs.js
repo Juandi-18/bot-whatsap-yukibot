@@ -6,6 +6,7 @@ import events from '../cmds/events.js'
 import pino from 'pino';
 import fs from 'fs';
 import chalk from 'chalk';
+import ws from 'ws'; // Necesario para verificar el estado del socket
 import { smsg } from './message.js';
 
 if (!global.conns) global.conns = []
@@ -29,30 +30,44 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
         syncFullHistory: false,
     })
 
+    // Variable interna para evitar peticiones de código dobles
+    sock.isPairing = false;
+
     sock.ev.on('creds.update', saveCreds)
 
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
+        
+        // --- LÓGICA DE VINCULACIÓN ---
         if (connection !== 'open' && commandFlags[senderId]?.active) {
             
-            // CASO A: SOLO EL CÓDIGO (LIMPIO)
+            // CASO A: CÓDIGO DE 8 DÍGITOS
             if (isCode && phone) {
+                if (sock.isPairing) return; // Bloqueo si ya hay una petición
+                sock.isPairing = true;
+
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 5000)); 
-                    let codeGen = await sock.requestPairingCode(phone);
-                    codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
+                    // Espera de 10 segundos para estabilizar la conexión (Evita Error 428)
+                    await new Promise(resolve => setTimeout(resolve, 10000)); 
+                    
+                    if (sock.ws.readyState === ws.OPEN) {
+                        let codeGen = await sock.requestPairingCode(phone);
+                        codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
 
-                    // Enviamos solo el código puro
-                    const msgCode = await client.sendMessage(chatId, { 
-                        text: `${codeGen}` 
-                    }, { quoted: m });
+                        // Solo enviamos el código puro
+                        const msgCode = await client.sendMessage(chatId, { 
+                            text: `${codeGen}` 
+                        }, { quoted: m });
 
-                    delete commandFlags[senderId];
+                        delete commandFlags[senderId]; 
 
-                    // Se borra en 60 segundos por seguridad
-                    setTimeout(async () => {
-                        try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
-                    }, 60000);
-                } catch (err) { console.error("Error Pairing Code:", err); }
+                        setTimeout(async () => {
+                            try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
+                        }, 60000);
+                    }
+                } catch (err) { 
+                    console.error(chalk.red("Error Pairing Code:"), err.message);
+                    sock.isPairing = false; 
+                }
             } 
             
             // CASO B: CÓDIGO QR
@@ -74,16 +89,35 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
         }
 
         if (connection === 'open') {
-            sock.userId = sock.user?.id?.split(':')[0]
-            if (!global.conns.find((c) => c.userId === sock.userId)) global.conns.push(sock)
-            console.log(chalk.green(`[ ✿ ] SUB-BOT conectado: ${sock.userId}`))
+            const botId = client.decodeJid(sock.user.id);
+            sock.userId = botId;
+
+            // Agregamos a la lista global solo si no está ya presente
+            if (!global.conns.some(c => client.decodeJid(c.user?.id) === botId)) {
+                global.conns.push(sock);
+            }
+
+            console.log(chalk.green(`[ ✿ ] SUB-BOT conectado: ${sock.userId}`));
             if (commandFlags[senderId]) delete commandFlags[senderId];
         }
 
         if (connection === 'close') {
-            const reason = lastDisconnect?.error?.output?.statusCode || 0
-            if (reason !== DisconnectReason.loggedOut) {
-                setTimeout(() => startSubBot(m, client, caption, isCode, phone, chatId, commandFlags, isCommand), 5000)
+            const reason = lastDisconnect?.error?.output?.statusCode || 0;
+            const botId = sock.user ? client.decodeJid(sock.user.id) : null;
+
+            // --- LIMPIEZA DE CONEXIÓN HONESTA ---
+            // Eliminamos de la lista global de bots activos si se desconecta
+            if (botId) {
+                global.conns = global.conns.filter(c => client.decodeJid(c.user?.id) !== botId);
+            }
+
+            if (reason === DisconnectReason.loggedOut) {
+                console.log(chalk.red(`[ ✿ ] SUB-BOT sesión cerrada: ${id}`));
+                // Borramos la carpeta de sesión para que no aparezca como "fantasma"
+                fs.rmSync(sessionFolder, { recursive: true, force: true });
+            } else {
+                // Reintento de conexión si no fue un logout manual
+                setTimeout(() => startSubBot(m, client, caption, isCode, phone, chatId, commandFlags, isCommand), 10000);
             }
         }
     });
@@ -96,6 +130,16 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
             try { main(sock, msg, messages) } catch (err) { console.log(err) }
         }
     })
+
+    // Función para decodificar JID dentro del socket del subbot
+    sock.decodeJid = (jid) => {
+        if (!jid) return jid;
+        if (/:\d+@/gi.test(jid)) {
+            const decode = jidDecode(jid) || {};
+            return (decode.user && decode.server && decode.user + "@" + decode.server) || jid;
+        }
+        return jid;
+    };
 
     return sock
 }

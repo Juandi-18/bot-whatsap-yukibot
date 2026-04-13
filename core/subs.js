@@ -32,27 +32,26 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
     sock.ev.on('creds.update', saveCreds)
 
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
-        
-        // --- LÓGICA DE VINCULACIÓN ---
         if (connection !== 'open' && commandFlags[senderId]?.active) {
             
-            // CASO A: CÓDIGO DE 8 DÍGITOS
+            // CASO A: SOLO EL CÓDIGO (LIMPIO)
             if (isCode && phone) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 3500)); // Espera a que el socket estabilice
+                    await new Promise(resolve => setTimeout(resolve, 5000)); 
                     let codeGen = await sock.requestPairingCode(phone);
                     codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
 
+                    // Enviamos solo el código puro
                     const msgCode = await client.sendMessage(chatId, { 
-                        text: `「✿」*CÓDIGO DE VINCULACIÓN* ◢\n\n➩ Código para: @${senderId.split('@')[0]}\n➩ Tu código es: *${codeGen}*\n\n> ꕤ Úsalo en 'Vincular con el número de teléfono'. ♡`,
-                        mentions: [senderId]
+                        text: `${codeGen}` 
                     }, { quoted: m });
 
-                    delete commandFlags[senderId]; // Evita duplicados
+                    delete commandFlags[senderId];
 
+                    // Se borra en 60 segundos por seguridad
                     setTimeout(async () => {
                         try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
-                    }, 12000);
+                    }, 60000);
                 } catch (err) { console.error("Error Pairing Code:", err); }
             } 
             
@@ -61,7 +60,7 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
                 try {
                     const msgQR = await client.sendMessage(chatId, { 
                         image: await qrcode.toBuffer(qr, { scale: 8 }), 
-                        caption: `「✿」*CÓDIGO QR* ◢\n\n➩ Escanea este código para activar tu Sub-Bot.\n➩ Solicitado por: @${senderId.split('@')[0]}\n\n> ꕤ Se borrará en 1 minuto. ♡`,
+                        caption: `「✿」 Escanea este QR para activar tu Sub-Bot.`,
                         mentions: [senderId]
                     }, { quoted: m });
 
@@ -69,7 +68,7 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
 
                     setTimeout(async () => {
                         try { await client.sendMessage(chatId, { delete: msgQR.key }) } catch {}
-                    }, 12000);
+                    }, 60000);
                 } catch (err) { console.error("Error QR:", err); }
             }
         }

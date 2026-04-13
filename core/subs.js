@@ -16,6 +16,11 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
     const sessionFolder = `./Sessions/Subs/${id}`;
     const senderId = m?.sender;
 
+    // Crear carpeta si no existe
+    if (!fs.existsSync(sessionFolder)) {
+        fs.mkdirSync(sessionFolder, { recursive: true });
+    }
+
     const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
     const { version } = await fetchLatestBaileysVersion();
 
@@ -31,53 +36,104 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
     sock.isPairing = false;
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        // --- LÓGICA PARA GENERAR VINCULACIÓN ---
         if (connection !== 'open' && commandFlags[senderId]?.active) {
+            
+            // CASO A: CÓDIGO DE 8 DÍGITOS
             if (isCode && phone) {
                 if (sock.isPairing) return;
                 sock.isPairing = true;
-                setTimeout(async () => {
-                    try {
-                        if (!sock.authState.creds.registered && sock.ws.readyState === ws.OPEN) {
-                            let codeGen = await sock.requestPairingCode(phone);
-                            codeGen = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
-                            const msgCode = await client.sendMessage(chatId, { text: `${codeGen}` }, { quoted: m });
-                            delete commandFlags[senderId];
-                            setTimeout(() => { try { client.sendMessage(chatId, { delete: msgCode.key }) } catch {} }, 60000);
-                        }
-                    } catch (err) { 
-                        sock.isPairing = false; 
+
+                // Esperamos a que el socket esté listo
+                await new Promise(resolve => setTimeout(resolve, 8000)); 
+
+                try {
+                    console.log(chalk.yellow(`[ ! ] Solicitando código de vinculación para: ${phone}`));
+                    
+                    // Intento 1
+                    let codeGen = await sock.requestPairingCode(phone).catch(err => {
+                        console.log(chalk.red("Error Intento 1:"), err.message);
+                        return null;
+                    });
+
+                    // Intento 2 (Si el primero falla)
+                    if (!codeGen) {
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        codeGen = await sock.requestPairingCode(phone).catch(() => null);
                     }
-                }, 12000);
+
+                    if (codeGen) {
+                        const finalCode = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
+                        
+                        await client.sendMessage(chatId, { 
+                            text: `*┏━━━━━━━━━━━━━━━━━━━┓*\n*┃ ❀ CÓDIGO DE VINCULACIÓN ❀ ┃*\n*┗━━━━━━━━━━━━━━━━━━━┛*\n\n*Número:* ${phone}\n*Código:* \`\`\`${finalCode}\`\`\`\n\n> _Cópialo y pégalo en la notificación de tu celular para activar el Sub-Bot._` 
+                        }, { quoted: m });
+
+                        delete commandFlags[senderId]; 
+                    } else {
+                        await client.sendMessage(chatId, { text: "⚠️ WhatsApp rechazó la petición del código. Intenta de nuevo en un minuto o usa QR." });
+                        sock.isPairing = false;
+                        delete commandFlags[senderId];
+                    }
+                } catch (err) {
+                    console.error("Error en proceso de código:", err);
+                    sock.isPairing = false;
+                }
+
+            // CASO B: CÓDIGO QR
             } else if (qr && !isCode) {
-                const msgQR = await client.sendMessage(chatId, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: `Escanea para activar.` }, { quoted: m });
-                delete commandFlags[senderId];
+                try {
+                    await client.sendMessage(chatId, { 
+                        image: await qrcode.toBuffer(qr, { scale: 8 }), 
+                        caption: `*┏━━━━━━━━━━━━━━━━━━━┓*\n*┃ ❀ ESCANEA PARA SER SUB-BOT ❀ ┃*\n*┗━━━━━━━━━━━━━━━━━━━┛*\n\n> _Escanea este QR desde 'Dispositivos vinculados' para activar tu sesión._` 
+                    }, { quoted: m });
+                    
+                    delete commandFlags[senderId];
+                } catch (e) {
+                    console.error("Error enviando QR:", e);
+                }
             }
         }
 
+        // --- ESTADO DE LA CONEXIÓN ---
         if (connection === 'open') {
-            const botId = client.decodeJid(sock.user.id);
-            if (!global.conns.some(c => client.decodeJid(c.user?.id) === botId)) global.conns.push(sock);
-            console.log(chalk.green(`[ ✿ ] SUB-BOT conectado: ${botId}`));
+            const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+            console.log(chalk.bgGreen.black(`[ SUCCESS ] SUB-BOT CONECTADO: ${botId}`));
+            
+            if (!global.conns.some(c => c.user?.id === sock.user.id)) {
+                global.conns.push(sock);
+            }
+            
+            await client.sendMessage(chatId, { text: `✅ *¡Sub-Bot activado correctamente!*\n\nID: @${botId.split('@')[0]}`, mentions: [botId] });
         }
 
         if (connection === 'close') {
             const reason = lastDisconnect?.error?.output?.statusCode || 0;
-            const botId = sock.user ? client.decodeJid(sock.user.id) : null;
-            if (botId) global.conns = global.conns.filter(c => client.decodeJid(c.user?.id) !== botId);
+            console.log(chalk.red(`[ ! ] Conexión cerrada. Razón: ${reason}`));
+
             if (reason === DisconnectReason.loggedOut) {
+                console.log(chalk.bgRed.white(" Sesión cerrada por el usuario. Eliminando archivos... "));
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
             } else {
+                // Reconexión automática para errores temporales
                 setTimeout(() => startSubBot(m, client, caption, isCode, phone, chatId, commandFlags, isCommand), 10000);
             }
         }
     });
 
+    // --- PROCESAMIENTO DE MENSAJES DEL SUB-BOT ---
     sock.ev.on('messages.upsert', async ({ messages }) => {
         for (let raw of messages) {
-            if (!raw.message) continue;
-            let msg = await smsg(sock, raw);
-            try { main(sock, msg, messages) } catch (err) {}
+            if (!raw.message || raw.key.remoteJid === 'status@broadcast') continue;
+            try {
+                const msg = await smsg(sock, raw);
+                await main(sock, msg, messages);
+            } catch (err) {
+                console.error("Error procesando mensaje en Sub-Bot:", err);
+            }
         }
     });
 

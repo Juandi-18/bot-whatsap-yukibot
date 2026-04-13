@@ -1,44 +1,48 @@
-const del = {
-    command: ['del', 'delete', 'borrar'],
+export default {
+    command: ['del', 'delete', 'clean'],
     category: 'utils',
-    isAdmin: true, 
-    run: async (client, m, args) => { // Recibe args directamente
+    isAdmin: true, // Solo admins pueden limpiar el chat
+    botAdmin: true, // El bot necesita ser admin para borrar mensajes de otros
+    run: async (client, m, args) => {
         try {
-            // 1. AVISO SI NO HAY ARGUMENTOS
-            if (!m.quoted && (!args || !args[0] || isNaN(parseInt(args[0])))) {
-                return client.reply(m.chat, "「✿」 *MODO DE USO* ◢\n\n➩ Responde a un mensaje para borrarlo.\n➩ Escribe *!del 5* para borrar los últimos 5 mensajes. ꕤ", m);
-            }
-
-            // 2. BORRADO POR RESPUESTA
-            if (m.quoted && (!args || !args[0])) {
-                const keyToDelete = {
-                    remoteJid: m.chat,
-                    fromMe: m.quoted.fromMe,
-                    id: m.quoted.id,
-                    participant: m.quoted.sender
-                };
-                return await client.sendMessage(m.chat, { delete: keyToDelete });
-            }
-
-            // 3. BORRADO POR CANTIDAD
-            const count = parseInt(args[0]);
-            if (isNaN(count) || count < 1) return;
-            const maxBorrado = count > 50 ? 50 : count;
+            const chatId = m.chat;
             
-            let messages = await client.loadMessages(m.chat, maxBorrado + 1);
-            if (!messages || messages.length === 0) return;
-
-            const toDelete = messages.filter(msg => msg.key.id !== m.key.id);
-
-            for (let msg of toDelete) {
-                try {
-                    await client.sendMessage(m.chat, { delete: msg.key });
-                    await new Promise(resolve => setTimeout(resolve, 350)); 
-                } catch (e) {}
+            // 1. VERIFICAR SI HAY MENSAJES EN MEMORIA
+            if (!client.messages || !client.messages[chatId] || client.messages[chatId].array.length === 0) {
+                return m.reply("《✧》 No hay mensajes registrados en mi memoria para borrar. ♡");
             }
+
+            // 2. DETERMINAR CANTIDAD A BORRAR
+            let amount = parseInt(args[0]) || 10; // Por defecto borra 10 si no pones número
+            if (amount > 100) amount = 100; // Límite de seguridad
+            if (amount < 1) amount = 1;
+
+            // 3. OBTENER LOS ÚLTIMOS MENSAJES
+            const messagesToPurge = client.messages[chatId].array.slice(-amount);
+
+            // 4. EJECUTAR EL BORRADO
+            for (let msg of messagesToPurge) {
+                try {
+                    // Usamos sendMessage con delete para cada mensaje
+                    await client.sendMessage(chatId, { delete: msg.key });
+                } catch (err) {
+                    // Si falla un mensaje (ej: es muy antiguo), seguimos con el siguiente
+                    continue;
+                }
+            }
+
+            // Limpiamos la memoria del bot después de borrar
+            client.messages[chatId].array = client.messages[chatId].array.filter(
+                m => !messagesToPurge.includes(m)
+            );
+
+            // Mensaje temporal de confirmación (se puede borrar solo si quieres)
+            const confirm = await client.reply(chatId, `「✿」 Se han eliminado *${messagesToPurge.length}* mensajes correctamente. ꕤ`, m);
+            setTimeout(() => client.sendMessage(chatId, { delete: confirm.key }), 3000);
+
         } catch (e) {
-            console.log("ERROR EN DEL:", e);
+            console.error("ERROR EN DEL:", e);
+            m.reply("《✧》 Ocurrió un error al intentar borrar los mensajes. ♡");
         }
-    }
+    },
 };
-export default del;

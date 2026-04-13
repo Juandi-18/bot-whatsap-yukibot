@@ -52,7 +52,7 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
 
                     setTimeout(async () => {
                         try { await client.sendMessage(chatId, { delete: msgCode.key }); } catch {}
-                    }, 60000);
+                    }, 12000);
                 } catch (err) { console.error("Error Pairing Code:", err); }
             } 
             
@@ -69,7 +69,7 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
 
                     setTimeout(async () => {
                         try { await client.sendMessage(chatId, { delete: msgQR.key }) } catch {}
-                    }, 60000);
+                    }, 12000);
                 } catch (err) { console.error("Error QR:", err); }
             }
         }

@@ -148,7 +148,7 @@ async function startBot() {
                 console.log(chalk.red("Error al generar código:"), err);
                 sock.pairingActive = false;
             }
-        }, 5000); // Espera de seguridad
+        }, 10000); // Espera de seguridad
     }
 
     sock.ev.on("creds.update", saveCreds);

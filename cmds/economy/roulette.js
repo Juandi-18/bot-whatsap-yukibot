@@ -14,7 +14,7 @@ export default {
         }
 
         const user = chatData.users[m.sender]
-        const currency = botSettings.currency || 'Monedas'
+        const currency = botSettings.currency || 'Yenes'
         
         // 1. VALIDACIÓN DE ARGUMENTOS
         if (args.length < 2) {
@@ -32,7 +32,7 @@ export default {
             return m.reply(`《✧》 Formato inválido. Ejemplo: *rt 2000 black* ♡`)
         }
 
-        // 2. SOLO ROJO Y NEGRO
+        // 2. FILTRO DE COLORES Y CANTIDAD
         const validColors = ['red', 'black']
         if (!validColors.includes(color)) {
             return m.reply(`《✧》 Color inválido. Solo puedes apostar a: *red* o *black*. ♡`)
@@ -46,22 +46,24 @@ export default {
             return m.reply(`《✧》 No tienes suficientes *${currency}* para esta apuesta.`)
         }
 
-        // 3. LÓGICA 50/50
+        // 3. LÓGICA DE RESULTADO
         const resultColor = validColors[Math.floor(Math.random() * validColors.length)]
 
         if (resultColor === color) {
-            const reward = amount * 2 // Siempre x2 al no haber verde
-            user.coins += (reward - amount) // Sumamos la ganancia neta
+            const reward = amount * 2
+            user.coins += (reward - amount) 
             
+            // MENSAJE DE GANADOR PERSONALIZADO
             return await client.sendMessage(chatId, { 
-                text: `「✿」 ¡La ruleta cayó en *${resultColor.toUpperCase()}*! ◢\n\n➩ Has ganado: *¥${reward.toLocaleString()} ${currency}*. ꕤ`, 
+                text: `「✿」 La ruleta salió en *${resultColor}* y has ganado *¥${reward.toLocaleString()} ${currency}*.`, 
                 mentions: [senderId] 
             }, { quoted: m })
         } else {
             user.coins -= amount
             
+            // MENSAJE DE PERDEDOR PERSONALIZADO
             return await client.sendMessage(chatId, { 
-                text: `「✿」 ¡La ruleta cayó en *${resultColor.toUpperCase()}*! ◢\n\n➩ Has perdido: *¥${amount.toLocaleString()} ${currency}*. ꕤ`, 
+                text: `「✿」 La ruleta salió en *${resultColor}* y has perdido *¥${amount.toLocaleString()} ${currency}*.`, 
                 mentions: [senderId] 
             }, { quoted: m })
         }

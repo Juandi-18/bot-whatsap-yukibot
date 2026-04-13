@@ -1,48 +1,58 @@
+// Función para crear pausas (ms = milisegundos)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 export default {
     command: ['del', 'delete', 'clean'],
     category: 'utils',
-    isAdmin: true, // Solo admins pueden limpiar el chat
-    botAdmin: true, // El bot necesita ser admin para borrar mensajes de otros
+    isAdmin: true, 
+    botAdmin: true, 
     run: async (client, m, args) => {
         try {
             const chatId = m.chat;
             
-            // 1. VERIFICAR SI HAY MENSAJES EN MEMORIA
             if (!client.messages || !client.messages[chatId] || client.messages[chatId].array.length === 0) {
-                return m.reply("《✧》 No hay mensajes registrados en mi memoria para borrar. ♡");
+                return m.reply("《✧》 No hay mensajes en mi memoria para limpiar. ♡");
             }
 
-            // 2. DETERMINAR CANTIDAD A BORRAR
-            let amount = parseInt(args[0]) || 10; // Por defecto borra 10 si no pones número
-            if (amount > 100) amount = 100; // Límite de seguridad
+            let amount = parseInt(args[0]) || 10;
+            if (amount > 50) amount = 50; // Bajamos el límite a 50 para mayor seguridad humana
             if (amount < 1) amount = 1;
 
-            // 3. OBTENER LOS ÚLTIMOS MENSAJES
-            const messagesToPurge = client.messages[chatId].array.slice(-amount);
+            const messagesToPurge = client.messages[chatId].array.slice(-amount).reverse();
 
-            // 4. EJECUTAR EL BORRADO
+            // Mensaje de inicio
+            const statusMsg = await client.reply(chatId, `「✿」 Iniciando limpieza de *${messagesToPurge.length}* mensajes... ꕤ\n> ○ Por seguridad, esto tomará unos segundos.`, m);
+
             for (let msg of messagesToPurge) {
                 try {
-                    // Usamos sendMessage con delete para cada mensaje
                     await client.sendMessage(chatId, { delete: msg.key });
+                    
+                    // --- COMPORTAMIENTO HUMANO ---
+                    // Espera entre 1.5 y 3 segundos de forma aleatoria entre cada mensaje
+                    const waitTime = Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+                    await delay(waitTime);
+                    
                 } catch (err) {
-                    // Si falla un mensaje (ej: es muy antiguo), seguimos con el siguiente
-                    continue;
+                    continue; // Si el mensaje es muy viejo o ya se borró, sigue
                 }
             }
 
-            // Limpiamos la memoria del bot después de borrar
+            // Limpiamos la memoria del bot
             client.messages[chatId].array = client.messages[chatId].array.filter(
                 m => !messagesToPurge.includes(m)
             );
 
-            // Mensaje temporal de confirmación (se puede borrar solo si quieres)
-            const confirm = await client.reply(chatId, `「✿」 Se han eliminado *${messagesToPurge.length}* mensajes correctamente. ꕤ`, m);
-            setTimeout(() => client.sendMessage(chatId, { delete: confirm.key }), 3000);
+            // Borramos el mensaje de estado y confirmamos
+            await client.sendMessage(chatId, { delete: statusMsg.key });
+            const finalConfirm = await client.reply(chatId, `「✿」 Limpieza completada con éxito. ꕤ`, m);
+            
+            // Borramos la confirmación final después de 4 segundos
+            await delay(4000);
+            await client.sendMessage(chatId, { delete: finalConfirm.key });
 
         } catch (e) {
             console.error("ERROR EN DEL:", e);
-            m.reply("《✧》 Ocurrió un error al intentar borrar los mensajes. ♡");
+            m.reply("《✧》 Ocurrió un error inesperado durante la limpieza. ♡");
         }
     },
 };

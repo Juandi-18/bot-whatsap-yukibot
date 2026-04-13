@@ -5,47 +5,52 @@ import { fileURLToPath } from 'url'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-let commandFlags = {}
+
+// IMPORTANTE: Esta variable ahora es global para que no se resetee
+if (!global.subBotFlags) global.subBotFlags = {}
 
 export default {
     command: ['code', 'qr'],
     category: 'socket',
-    run: async (client, m, { args }) => { // Quitamos 'command' de aquí para evitar el error
+    run: async (client, m, { args }) => {
         try {
-            if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
-            let user = global.db.data.users[m.sender]
+            const sender = m.sender;
+            const text = m.text || '';
+            const isCode = text.toLowerCase().includes('code');
+
+            // 1. REGISTRO DE USUARIO
+            if (!global.db.data.users[sender]) global.db.data.users[sender] = {}
+            let user = global.db.data.users[sender]
             
+            // Cooldown de 2 minutos
             let time = (user.Subs || 0) + 120000 
             if (new Date() - (user.Subs || 0) < 120000) {
                 return client.reply(m.chat, `《✧》 Espera *${msToTime(time - new Date())}* para reintentar. ♡`, m)
             }
 
-            // --- SOLUCIÓN AL ERROR: Detectamos el comando directamente del texto ---
-            // Esto evita que el bot se rompa si 'command' llega vacío
-            const text = m.text || '';
-            const isCode = text.toLowerCase().includes('code'); 
-
-            const rtxCode = `「✿」*SOLICITUD DE CÓDIGO* ◢\n\n➩ *Instrucciones:*\n1. Ve a *Dispositivos vinculados*.\n2. Toca *Vincular con el número de teléfono*.\n\nꕤ *Importante:* Tu código llegará en unos segundos. ♡`;
-            const rtxQr = `「✿」*SOLICITUD DE QR* ◢\n\n➩ *Instrucciones:*\n1. Escanea el código QR que aparecerá a continuación. ꕤ`;
-
-            const caption = isCode ? rtxCode : rtxQr;
-            
-            let phone = m.sender.split('@')[0]
-            if (args && args.length > 0 && args[0]) {
-                phone = args[0].replace(/\D/g, '')
+            // 2. ACTIVAR BANDERA INDIVIDUAL
+            // Guardamos el chat específico de ESTE usuario para que no se cruce con otros
+            global.subBotFlags[sender] = {
+                active: true,
+                chatId: m.chat
             }
+
+            const caption = isCode 
+                ? `「✿」*SOLICITUD DE CÓDIGO* ◢\n\n➩ El código llegará en segundos para el número: @${sender.split('@')[0]}`
+                : `「✿」*SOLICITUD DE QR* ◢\n\n➩ Escanea el QR que aparecerá abajo.`;
+
+            let phone = args[0] ? args[0].replace(/\D/g, '') : sender.split('@')[0];
+
+            await client.reply(m.chat, caption, m, { mentions: [sender] });
             
-            commandFlags[m.sender] = true
-            await client.reply(m.chat, caption, m)
-            
-            // Enviamos los datos al core (subs.js)
-            await startSubBot(m, client, caption, isCode, phone, m.chat, commandFlags, true)
+            // 3. INICIAR INSTANCIA INDEPENDIENTE
+            // Pasamos global.subBotFlags para que el core sepa a quién responder
+            await startSubBot(m, client, caption, isCode, phone, m.chat, global.subBotFlags, true)
             
             user.Subs = new Date() * 1
             
         } catch (e) {
-            console.error("ERROR EN SUBBOT:", e)
-            client.reply(m.chat, '《✧》 Error al procesar la vinculación. Revisa la consola. ♡', m)
+            console.error("ERROR MULTI-SUBBOT:", e)
         }
     }
 };

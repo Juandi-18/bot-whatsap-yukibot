@@ -10,44 +10,48 @@ export default {
         try {
             const chatId = m.chat;
             
+            // 1. VERIFICAR MEMORIA
             if (!client.messages || !client.messages[chatId] || client.messages[chatId].array.length === 0) {
                 return m.reply("《✧》 No hay mensajes en mi memoria para limpiar. ♡");
             }
 
+            // 2. DETERMINAR CANTIDAD (Máximo 50 por seguridad)
             let amount = parseInt(args[0]) || 10;
-            if (amount > 50) amount = 50; // Bajamos el límite a 50 para mayor seguridad humana
+            if (amount > 50) amount = 50; 
             if (amount < 1) amount = 1;
 
+            // Obtenemos los mensajes de la memoria (del más nuevo al más viejo)
             const messagesToPurge = client.messages[chatId].array.slice(-amount).reverse();
 
             // Mensaje de inicio
-            const statusMsg = await client.reply(chatId, `「✿」 Iniciando limpieza de *${messagesToPurge.length}* mensajes... ꕤ\n> ○ Por seguridad, esto tomará unos segundos.`, m);
+            const statusMsg = await client.reply(chatId, `「✿」 Iniciando limpieza rápida de *${messagesToPurge.length}* mensajes... ꕤ`, m);
 
+            // 3. CICLO DE BORRADO HUMANO RÁPIDO
             for (let msg of messagesToPurge) {
                 try {
                     await client.sendMessage(chatId, { delete: msg.key });
                     
-                    // --- COMPORTAMIENTO HUMANO ---
-                    // Espera entre 1.5 y 3 segundos de forma aleatoria entre cada mensaje
-                    const waitTime = Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+                    // --- TIEMPO OPTIMIZADO ---
+                    // Espera entre 0.75 y 1.5 segundos por mensaje
+                    const waitTime = Math.floor(Math.random() * (1500 - 750 + 1)) + 750;
                     await delay(waitTime);
                     
                 } catch (err) {
-                    continue; // Si el mensaje es muy viejo o ya se borró, sigue
+                    continue; // Si el mensaje ya no existe, saltar al siguiente
                 }
             }
 
-            // Limpiamos la memoria del bot
+            // 4. LIMPIEZA DE MEMORIA POST-BORRADO
             client.messages[chatId].array = client.messages[chatId].array.filter(
-                m => !messagesToPurge.includes(m)
+                msg => !messagesToPurge.includes(msg)
             );
 
-            // Borramos el mensaje de estado y confirmamos
+            // 5. CONFIRMACIÓN FINAL
             await client.sendMessage(chatId, { delete: statusMsg.key });
             const finalConfirm = await client.reply(chatId, `「✿」 Limpieza completada con éxito. ꕤ`, m);
             
-            // Borramos la confirmación final después de 4 segundos
-            await delay(4000);
+            // Borramos la confirmación después de 3 segundos para dejar el chat limpio
+            await delay(3000);
             await client.sendMessage(chatId, { delete: finalConfirm.key });
 
         } catch (e) {

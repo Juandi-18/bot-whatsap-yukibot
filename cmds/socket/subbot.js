@@ -3,9 +3,10 @@ import { startSubBot } from '../../core/subs.js';
 export default {
     command: ['code', 'qr'],
     category: 'socket',
-    run: async (client, m, { args, usedPrefix, command }) => {
+    run: async (client, m, args, usedPrefix, command) => { // <--- CAMBIO AQUÍ (Sin llaves)
         try {
             const sender = m.sender;
+            // Ahora 'command' no será undefined y el toLowerCase funcionará
             const isCode = command.toLowerCase().includes('code');
 
             // 1. Limpiar número de teléfono
@@ -14,9 +15,10 @@ export default {
                 phone = args[0].replace(/\D/g, '');
             }
 
-            // 2. Notificación de inicio (Si esto sale, el comando SÍ detecta)
+            // 2. Notificación de inicio
             await client.sendMessage(m.chat, { 
-                text: `⏳ *YukiBot* está procesando tu solicitud de ${isCode ? 'Código' : 'QR'}...` 
+                text: `⏳ *YukiBot* está procesando tu solicitud de ${isCode ? 'Código' : 'QR'} para @${phone}...`,
+                mentions: [phone + '@s.whatsapp.net']
             }, { quoted: m });
 
             // 3. Configurar bandera global
@@ -27,7 +29,6 @@ export default {
             };
 
             // 4. Llamar a la función del núcleo
-            // IMPORTANTE: Verifica que la ruta '../../core/subs.js' sea correcta según tu estructura
             await startSubBot(m, client, '', isCode, phone, m.chat, global.subBotFlags, true);
 
         } catch (e) {

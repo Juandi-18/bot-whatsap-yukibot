@@ -40,26 +40,21 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
         const { connection, lastDisconnect, qr } = update;
 
         // --- LÓGICA PARA GENERAR VINCULACIÓN ---
+        // --- LÓGICA PARA GENERAR VINCULACIÓN (ACTUALIZADA) ---
         if (connection !== 'open' && commandFlags[senderId]?.active) {
             
-            // CASO A: CÓDIGO DE 8 DÍGITOS
+            // CASO A: CÓDIGO DE 8 DÍGITOS (Optimizado para Android)
             if (isCode && phone) {
                 if (sock.isPairing) return;
                 sock.isPairing = true;
 
-                // Esperamos a que el socket esté listo
                 await new Promise(resolve => setTimeout(resolve, 8000)); 
 
                 try {
-                    console.log(chalk.yellow(`[ ! ] Solicitando código de vinculación para: ${phone}`));
+                    console.log(chalk.yellow(`[ ! ] Solicitando código para: ${phone}`));
                     
-                    // Intento 1
-                    let codeGen = await sock.requestPairingCode(phone).catch(err => {
-                        console.log(chalk.red("Error Intento 1:"), err.message);
-                        return null;
-                    });
+                    let codeGen = await sock.requestPairingCode(phone).catch(() => null);
 
-                    // Intento 2 (Si el primero falla)
                     if (!codeGen) {
                         await new Promise(resolve => setTimeout(resolve, 5000));
                         codeGen = await sock.requestPairingCode(phone).catch(() => null);
@@ -68,13 +63,20 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
                     if (codeGen) {
                         const finalCode = codeGen?.match(/.{1,4}/g)?.join("-") || codeGen;
                         
-                        await client.sendMessage(chatId, { 
-                            text: `*┏━━━━━━━━━━━━━━━━━━━┓*\n*┃ ❀ CÓDIGO DE VINCULACIÓN ❀ ┃*\n*┗━━━━━━━━━━━━━━━━━━━┛*\n\n*Número:* ${phone}\n*Código:* \`\`\`${finalCode}\`\`\`\n\n> _Cópialo y pégalo en la notificación de tu celular para activar el Sub-Bot._` 
+                        // Enviamos solo lo necesario para copiar fácil
+                        const sentCode = await client.sendMessage(chatId, { 
+                            text: `\`\`\`${finalCode}\`\`\`\n\n> Número: ${phone}` 
                         }, { quoted: m });
 
                         delete commandFlags[senderId]; 
+
+                        // Auto-eliminar después de 1 minuto (60000 ms)
+                        setTimeout(async () => {
+                            await client.sendMessage(chatId, { delete: sentCode.key }).catch(e => console.log("Error al borrar código:", e));
+                        }, 60000);
+
                     } else {
-                        await client.sendMessage(chatId, { text: "⚠️ WhatsApp rechazó la petición del código. Intenta de nuevo en un minuto o usa QR." });
+                        await client.sendMessage(chatId, { text: "⚠️ Error al obtener el código. Reintenta." });
                         sock.isPairing = false;
                         delete commandFlags[senderId];
                     }
@@ -83,15 +85,21 @@ export async function startSubBot(m, client, caption = '', isCode = false, phone
                     sock.isPairing = false;
                 }
 
-            // CASO B: CÓDIGO QR
+            // CASO B: CÓDIGO QR (Con auto-borrado)
             } else if (qr && !isCode) {
                 try {
-                    await client.sendMessage(chatId, { 
+                    const sentQR = await client.sendMessage(chatId, { 
                         image: await qrcode.toBuffer(qr, { scale: 8 }), 
-                        caption: `*┏━━━━━━━━━━━━━━━━━━━┓*\n*┃ ❀ ESCANEA PARA SER SUB-BOT ❀ ┃*\n*┗━━━━━━━━━━━━━━━━━━━┛*\n\n> _Escanea este QR desde 'Dispositivos vinculados' para activar tu sesión._` 
+                        caption: `*ESCANEAME* (Se borra en 1 min)` 
                     }, { quoted: m });
                     
                     delete commandFlags[senderId];
+
+                    // Auto-eliminar después de 1 minuto
+                    setTimeout(async () => {
+                        await client.sendMessage(chatId, { delete: sentQR.key }).catch(e => console.log("Error al borrar QR:", e));
+                    }, 60000);
+
                 } catch (e) {
                     console.error("Error enviando QR:", e);
                 }

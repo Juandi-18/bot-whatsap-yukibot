@@ -132,25 +132,22 @@ async function startBot() {
 
     global.client = sock;
     
-    /if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
+    // Busca este bloque en tu index.js
+if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
     if (sock.pairingActive) return; 
     sock.pairingActive = true;
 
-    // AUMENTAMOS A 15 SEGUNDOS
     setTimeout(async () => {
         try {
-            // Solo pedimos el código si el socket está conectado
             if (!sock.authState.creds.registered) {
-                log.info("Enviando solicitud de código a WhatsApp...");
                 const pairing = await sock.requestPairingCode(phoneNumber);
                 const codeBot = pairing?.match(/.{1,4}/g)?.join("-") || pairing;
-                console.log(chalk.bold.white(chalk.bgMagenta(`\n ❀ CÓDIGO: ${codeBot} \n`)));
+                // Log ultra limpio para la terminal
+                console.log(chalk.black.bgWhite(`\n CÓDIGO DE VINCULACIÓN: ${codeBot} \n`));
             }
         } catch (err) {
             console.log(chalk.red("Error Pairing Code:"), err.message);
             sock.pairingActive = false;
-            // Si falla, reintentamos en 10 segundos automáticamente
-            setTimeout(() => startBot(), 10000);
         }
     }, 15000); 
 }

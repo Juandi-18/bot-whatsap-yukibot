@@ -96,13 +96,20 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY ---
+    // --- 9. FILTRO FAMILY FRIENDLY EN MAIN.JS ---
     if (chat.familyFriendly && !isOwners && !m.key.fromMe) {
-        // Bloqueo de categoría NSFW
+        
+        // A. Bloquear el intento de activar NSFW (Nuevo)
+        if (command === 'nsfw' && (args[0] === 'on' || args[0] === '1')) {
+            return m.reply("⚠️ No puedes activar el modo NSFW porque el modo *Family Friendly* está encendido.\n> Desactiva primero el escudo familiar para realizar este cambio.");
+        }
+
+        // B. Bloqueo de comandos de categoría NSFW
         if (cmdData.category === 'nsfw') {
             return m.reply("⚠️ El modo *Family Friendly* está activo. Comandos NSFW bloqueados.");
         }
-        // Bloqueo específico de comandos de imagen
+
+        // C. Bloqueo específico de comandos de imagen
         const imgCommands = ['imagen', 'img', 'image'];
         if (imgCommands.includes(command)) {
             return m.reply("⚠️ La búsqueda de imágenes está desactivada en este grupo.");

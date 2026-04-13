@@ -5,6 +5,10 @@ export const commands = {
 
 ꕤ \`$prefixw\` » \`$prefixwork\` » \`$prefixtrabajar\`
 > Ganar coins trabajando.
+ꕤ \`$prefixplatacomocancha\`
+> Agregar dinero a tu economia (solo para el dueño del bot).
+ꕤ \`$prefixquitarplata\`
+> Quita dinero a un usuario (solo para el dueño del bot).
 ꕤ \`$prefixbalance\` » \`$prefixbal\` » \`$prefixcoins\`
 > Ver cuantos coins tienes.
 ꕤ \`$prefixcoinflip\` » \`$prefixflip\` » \`$prefixcf\`

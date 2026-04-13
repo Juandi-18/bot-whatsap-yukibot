@@ -10,9 +10,9 @@ let commandFlags = {}
 export default {
     command: ['code', 'qr'],
     category: 'socket',
-    run: async (client, m, { args, command }) => { // <--- Aquí simplificamos la entrada
+    run: async (client, m, { args, command }) => {
         try {
-            // 1. VERIFICACIÓN DE USUARIO Y COOLDOWN
+            // 1. INICIALIZAR USUARIO Y COOLDOWN
             if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
             let user = global.db.data.users[m.sender]
             
@@ -21,37 +21,39 @@ export default {
                 return client.reply(m.chat, `《✧》 Por favor, espera *${msToTime(time - new Date())}* para volver a intentar. ♡`, m)
             }
 
-            // 2. VERIFICACIÓN DE CARPETA
-            const subsPath = path.join(dirname, '../../Sessions/Subs')
-            if (!fs.existsSync(subsPath)) fs.mkdirSync(subsPath, { recursive: true })
+            // 2. DETECCIÓN DE INTENCIÓN (QR o CODE)
+            // Si el comando es 'code', isCode será true. Si es 'qr', será false.
+            const isCode = /code/i.test(command) 
 
-            // 3. DEFINICIÓN DE MENSAJES
-            const rtx = `「✿」*VINCULACIÓN POR CÓDIGO* ◢\n\n➩ Sigue estos pasos:\n\n1. Ve a *Dispositivos vinculados*.\n2. Toca en *Vincular un dispositivo*.\n3. Selecciona *Vincular con el número de teléfono*.\n\nꕤ *Importante:* El código de 8 dígitos aparecerá abajo. ♡`
-            const rtx2 = `「✿」*VINCULACIÓN POR QR* ◢\n\n➩ Escanea el código QR que aparecerá a continuación. ꕤ`
-
-            const isCode = /code/i.test(command)
-            const caption = isCode ? rtx : rtx2
+            // 3. MENSAJES PERSONALIZADOS
+            const rtxCode = `「✿」*SOLICITUD DE CÓDIGO* ◢\n\n➩ *Paso a paso:*\n1. Ve a *Dispositivos vinculados*.\n2. Toca *Vincular un dispositivo*.\n3. Selecciona *Vincular con el número de teléfono*.\n\nꕤ *Importante:* Tu código de 8 dígitos aparecerá debajo de este mensaje en unos instantes. ♡`
             
-            // --- CORRECCIÓN DEL ERROR '0' ---
-            // Si args existe y tiene contenido, lo usa; si no, usa el número de quien envía el mensaje
+            const rtxQr = `「✿」*SOLICITUD DE QR* ◢\n\n➩ *Instrucciones:*\n1. Ve a *Dispositivos vinculados*.\n2. Escanea el código QR que aparecerá a continuación para activar tu Sub-Bot. ꕤ`
+
+            const caption = isCode ? rtxCode : rtxQr
+            
+            // 4. PREPARAR EL NÚMERO
             let phone = m.sender.split('@')[0]
             if (args && args.length > 0 && args[0]) {
                 phone = args[0].replace(/\D/g, '')
             }
             
+            // 5. EJECUCIÓN
             commandFlags[m.sender] = true
             
-            // 4. EJECUCIÓN
+            // Enviamos el mensaje de texto primero
             await client.reply(m.chat, caption, m)
             
-            // Inicia el proceso en subs.js
+            // Llamamos a startSubBot pasando 'isCode' correctamente
+            // Si isCode es true -> Mandará el código de 8 dígitos
+            // Si isCode es false -> Mandará la imagen del QR
             await startSubBot(m, client, caption, isCode, phone, m.chat, commandFlags, true)
             
             user.Subs = new Date() * 1
             
         } catch (e) {
             console.error("ERROR EN SUBBOT:", e)
-            client.reply(m.chat, '《✧》 Ocurrió un fallo al generar la vinculación. Revisa la consola. ♡', m)
+            client.reply(m.chat, '《✧》 Ocurrió un fallo al intentar procesar la vinculación. ♡', m)
         }
     }
 };

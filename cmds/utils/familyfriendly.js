@@ -9,23 +9,29 @@ export default {
         ];
         const isOwners = owners.map(v => client.decodeJid(v)).includes(client.decodeJid(m.sender));
 
-        // --- BLOQUEO DE SEGURIDAD ---
+        // --- 1. BLOQUEO DE SEGURIDAD ---
         if (!isOwners && !m.key.fromMe) {
             return m.reply('《✧》 Este comando es exclusivo de mi *Creador*. ♡');
         }
 
+        // --- 2. ACCESO A LA BASE DE DATOS DEL CHAT ---
         const chat = global.db.data.chats[m.chat] || {};
         
         if (!args[0]) return m.reply(`*¿Cómo usar?*\n${usedPrefix + command} on\n${usedPrefix + command} off`);
 
-        if (args[0] === 'on') {
+        // --- 3. LÓGICA DE ACTIVACIÓN ---
+        if (args[0] === 'on' || args[0] === '1') {
+            if (chat.familyFriendly) return m.reply('✅ El modo *Family Friendly* ya estaba activado en este grupo.');
             chat.familyFriendly = true;
-            m.reply('✅ *Modo Family Friendly activado.*\nLos comandos NSFW y de búsqueda de imágenes han sido desactivados para los usuarios.');
-        } else if (args[0] === 'off') {
+            m.reply('✅ *Modo Family Friendly activado.*\n\n> Se han bloqueado los comandos NSFW y se ha activado el filtro de palabras en buscadores (TikTok, YT, etc.) para todos.');
+            
+        } else if (args[0] === 'off' || args[0] === '0') {
+            if (!chat.familyFriendly) return m.reply('❌ El modo *Family Friendly* ya estaba desactivado.');
             chat.familyFriendly = false;
-            m.reply('❌ *Modo Family Friendly desactivado.*');
+            m.reply('❌ *Modo Family Friendly desactivado.*\nAhora todos los comandos están disponibles nuevamente.');
+            
         } else {
-            m.reply('⚠️ Opción inválida. Usa `on` o `off`.');
+            m.reply(`⚠️ Opción inválida. Usa:\n> *${usedPrefix + command} on*\n> *${usedPrefix + command} off*`);
         }
     }
 };

@@ -28,7 +28,7 @@ export default {
         const targetData = chatData.users[who]
         if (!targetData) return m.reply(`ꕥ El usuario mencionado no está registrado.`)
 
-        // 2. VALIDAR CANTIDAD (Saca del banco del emisor)
+        // 2. VALIDAR CANTIDAD
         const cantidadInput = args[0]?.toLowerCase()
         let cantidad = cantidadInput === 'all' ? (senderData.bank || 0) : parseInt(cantidadInput)
 
@@ -37,32 +37,23 @@ export default {
         }
 
         if ((senderData.bank || 0) < cantidad) {
-            return m.reply(`ꕥ No tienes suficientes *${monedas}* en el banco.\n> Saldo bancario: *¥${(senderData.bank || 0).toLocaleString()}*`)
+            return m.reply(`ꕥ No tienes suficientes *${monedas}* en el banco para transferir.\n> Tu saldo actual: *¥${(senderData.bank || 0).toLocaleString()} ${monedas}*`)
         }
 
-        // 3. LÓGICA DE TRANSFERENCIA (Limpiador de Deuda)
-        senderData.bank -= cantidad // Restamos del banco del que envía
+        // 3. PROCESO DE TRANSFERENCIA
+        senderData.bank -= cantidad // Sale del banco del emisor
         
-        // Sumamos a COINS (efectivo) del que recibe para que descuente la deuda
-        const saldoAnterior = targetData.coins || 0
+        // El dinero llega a 'coins' del receptor para saldar deuda si existe
         targetData.coins = (targetData.coins || 0) + cantidad
 
-        // 4. RESPUESTA Y NOTIFICACIÓN DE DEUDA
+        // 4. MENSAJE FINAL (Exactamente como lo pediste)
         let name = global.db.data.users[who]?.name || who.split('@')[0]
-        let mensaje = `「✿」 *TRANSFERENCIA EXITOSA* ◢\n\n`
-        mensaje += `➩ Enviaste: *¥${cantidad.toLocaleString()} ${monedas}*\n`
-        mensaje += `➩ Destinatario: *${name}*\n`
-        mensaje += `➩ Tu nuevo saldo banco: *¥${senderData.bank.toLocaleString()}*\n\n`
+        
+        const textoFinal = `❀ Transferiste *¥${cantidad.toLocaleString()} ${monedas}* a *${name}*\n> Ahora tienes *¥${senderData.bank.toLocaleString()} ${monedas}* en tu banco.`
 
-        // Si el usuario tenía deuda (saldo negativo)
-        if (saldoAnterior < 0) {
-            if (targetData.coins >= 0) {
-                mensaje += `✨ *Nota:* El dinero recibido cubrió la deuda de *${name}* y ahora tiene saldo positivo.`
-            } else {
-                mensaje += `⚠️ *Nota:* El dinero redujo la deuda de *${name}*, pero aún debe *¥${Math.abs(targetData.coins).toLocaleString()}* .`
-            }
-        }
-
-        return await client.sendMessage(chatId, { text: mensaje, mentions: [who] }, { quoted: m })
+        return await client.sendMessage(chatId, { 
+            text: textoFinal, 
+            mentions: [who] 
+        }, { quoted: m })
     }
 }

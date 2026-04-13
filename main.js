@@ -8,125 +8,107 @@ import seeCommands from './core/system/commandLoader.js';
 import initDB from './core/system/initDB.js';
 import antilink from './cmds/antilink.js';
 import level from './cmds/level.js';
-import { getGroupAdmins } from './core/message.js';
 
 seeCommands();
 
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
-    // --- REGISTRO GLOBAL DE MENSAJES PARA EL COMANDO CLEAN ---
-    if (!client.messages) client.messages = {};
-    if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
-    
-    client.messages[m.chat].array.push(m);
-    
-    if (client.messages[m.chat].array.length > 100) {
-        client.messages[m.chat].array.shift();
-    }
+    // --- NORMALIZACIÓN DE IDs (Evita confusiones) ---
+    const chatJid = client.decodeJid(m.chat);
+    const senderJid = client.decodeJid(m.sender);
+    const botJid = client.decodeJid(client.user.id);
 
-    const sender = m.sender;
-    let body = m.message?.conversation || m.message?.extendedTextMessage?.text || m.message?.imageMessage?.caption || m.message?.videoMessage?.caption || '';
+    // --- REGISTRO AISLADO POR CHAT ID ---
+    if (!client.messages) client.messages = {};
+    if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
     
-    if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16) || (m.id.startsWith("B24E") && m.id.length === 20))) return;
+    client.messages[chatJid].array.push(m);
+    if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
+
+    // Evitar responder a otros bots o mensajes automáticos del sistema
+    if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16))) return;
     
+    // Inicializar base de datos con IDs limpios
     initDB(m, client);
     antilink(client, m);
 
-    const from = m.chat;
-    const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net';
-    const chat = global.db.data.chats[m.chat] || {};
-    const settings = global.db.data.settings[botJid] || {};
-    const user = global.db.data.users[sender] ||= {};
-    const users = chat.users ? chat.users[sender] || {} : {};
+    // --- ACCESO ÚNICO A LA BASE DE DATOS ---
+    const db = global.db.data;
+    const chat = db.chats[chatJid] || {};
+    const settings = db.settings[botJid] || {};
+    const user = db.users[senderJid] ||= {};
+    const groupUser = (chat.users && chat.users[senderJid]) ? chat.users[senderJid] : null;
 
-    // --- REGISTRO DE ACTIVIDAD ---
-    if (users) users.lastCmd = Date.now(); 
+    // Registrar actividad con timestamp único
+    if (groupUser) groupUser.lastCmd = Date.now(); 
 
-    const pushname = m.pushName || 'Sin nombre';
+    const pushname = m.pushName || 'Usuario';
     
     let groupMetadata = null;
     let groupAdmins = [];
     let groupName = '';
+
     if (m.isGroup) {
-        groupMetadata = await client.groupMetadata(m.chat).catch(() => null);
+        groupMetadata = await client.groupMetadata(chatJid).catch(() => null);
         groupName = groupMetadata?.subject || '';
         groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || [];
     }  
 
-    // --- IDENTIFICACIÓN DE ROLES (MEJORADA) ---
-    const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(botJid)) : false;
-    const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(sender)) : false;
+    // --- VALIDACIÓN DE ROLES POR ID DECODIFICADO ---
+    const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === botJid) : false;
+    const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === senderJid) : false;
     
     const owners = [
         botJid, 
         ...(settings.owner ? [settings.owner] : []), 
         ...global.owner.map(num => num.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
     ];
-    const isOwners = owners.map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
+    const isOwners = owners.map(v => client.decodeJid(v)).includes(senderJid);
 
-    // --- FILTROS DE ACCESO (SANEADOS) ---
-    
-    // Modo Solo Dueño (Solo bloquea si está encendido en la DB)
+    // --- FILTROS DE SEGURIDAD ---
     if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
-
-    // Filtro de Baneos de Grupo
     if (chat?.isBanned && !isOwners && !isAdmins && !m.key.fromMe) return;
 
-    // --- PROCESAMIENTO DE PREFIJOS Y COMANDOS ---
-    const rawBotname = settings.namebot || 'Yuki';
-    const namebot = rawBotname.replace(/[^a-zA-Z0-9\s]/g, '') || 'Yuki';
-    
-    let usedPrefix = '/'; // Prefijo por defecto si falla el regex
+    // --- PROCESAMIENTO DE PREFIJOS ---
     const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix || '!'];
     const prefixRegex = new RegExp('^[' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']', 'i');
     
-    const isCmd = prefixRegex.test(m.text);
-    if (!isCmd) return;
+    if (!prefixRegex.test(m.text)) return;
 
-    usedPrefix = m.text.match(prefixRegex)[0];
-    let args = m.text.slice(usedPrefix.length).trim().split(/ +/);
-    let command = args.shift().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    let text = args.join(' ');
+    const usedPrefix = m.text.match(prefixRegex)[0];
+    const args = m.text.slice(usedPrefix.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const text = args.join(' ');
 
     if (!command) return;
 
-    // Log de consola con colores
-    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${botJid}\n│ ${chalk.bold.yellow('Fecha')}: ${moment().format('DD/MM/YY HH:mm:ss')}\n│ ${chalk.bold.blueBright('Usuario')}: ${pushname}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + groupName : '│' + chalk.bold.green(' Privado')}\n│ ${chalk.bold.cyanBright('Comando')}: ${command}\n╰────────────────────────────···\n`));
+    // Log único en consola
+    console.log(chalk.bold.cyan(`[ ID: ${chatJid.split('@')[0]} ]`) + chalk.white(` Comando: ${command} | De: ${pushname}`));
 
     const cmdData = global.comandos.get(command);
-    if (!cmdData) {
-        return m.reply(`ꕤ El comando *${usedPrefix + command}* no existe. Usa *${usedPrefix}help* para ver la lista.`);
-    }
+    if (!cmdData) return; // Si no existe, ignoramos en silencio para evitar spam
 
-    // --- VALIDACIÓN DE PERMISOS DEL COMANDO ---
-    if (cmdData.isAdmin && !isAdmins && !isOwners) {
-        return m.reply("《✧》 Este comando es solo para *Administradores* del grupo. ♡");
-    }
+    // --- VERIFICACIÓN DE PERMISOS ---
+    if (cmdData.isAdmin && !isAdmins && !isOwners) return m.reply("《✧》 Solo Admins. ♡");
+    if (cmdData.botAdmin && !isBotAdmins) return m.reply("《✧》 ¡Hazme Admin primero! ♡");
+    if (cmdData.isOwner && !isOwners) return;
 
-    if (cmdData.botAdmin && !isBotAdmins) {
-        return m.reply("《✧》 Necesito ser *Administrador* para ejecutar esta acción. ♡");
-    }
-
-    if (cmdData.isOwner && !isOwners) {
-        return m.reply("《✧》 Este comando es exclusivo de mi *Creador*. ♡");
-    }
-
-    // --- EJECUCIÓN ---
+    // --- EJECUCIÓN DEL COMANDO ---
     try {
         await client.readMessages([m.key]);
-        if (user) user.usedcommands = (user.usedcommands || 0) + 1;
+        user.usedcommands = (user.usedcommands || 0) + 1;
         
+        // Ejecución con JID limpio
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
         if (result && result.key) {
-            if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
-            client.messages[m.chat].array.push(result);
+            if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
+            client.messages[chatJid].array.push(result);
         }
         
     } catch (error) {
-        console.error("Error en ejecución:", error);
-        await client.sendMessage(m.chat, { text: `《✧》 Error Interno: ${error.message}` }, { quoted: m });
+        console.error(`ERROR EN ID ${chatJid}:`, error);
     }
     
     level(m);

@@ -1,5 +1,5 @@
 import ws from 'ws';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
@@ -14,36 +14,35 @@ seeCommands();
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
-    // --- NORMALIZACIÓN DE IDs (Evita confusiones) ---
+    // --- NORMALIZACIÓN DE IDs (Seguridad de Identidad) ---
     const chatJid = client.decodeJid(m.chat);
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id);
 
-    // --- REGISTRO AISLADO POR CHAT ID ---
+    // --- REGISTRO DE MENSAJES PARA COMANDO CLEAN ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
-    
     client.messages[chatJid].array.push(m);
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
-    // Evitar responder a otros bots o mensajes automáticos del sistema
+    // Bloqueo de mensajes automáticos de sistema (BAE5, 3EB0)
     if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16))) return;
     
-    // Inicializar base de datos con IDs limpios
+    // Inicialización de Base de Datos
     initDB(m, client);
     antilink(client, m);
 
-    // --- ACCESO ÚNICO A LA BASE DE DATOS ---
     const db = global.db.data;
     const chat = db.chats[chatJid] || {};
     const settings = db.settings[botJid] || {};
     const user = db.users[senderJid] ||= {};
     const groupUser = (chat.users && chat.users[senderJid]) ? chat.users[senderJid] : null;
 
-    // Registrar actividad con timestamp único
     if (groupUser) groupUser.lastCmd = Date.now(); 
 
-    const pushname = m.pushName || 'Usuario';
+    // --- OBTENCIÓN DE METADATOS (Nombre de grupo y hora) ---
+    const pushname = m.pushName || 'Usuario Desconocido';
+    const time = moment.tz('America/Bogota').format('DD/MM/YY HH:mm:ss'); // Ajustado a tu zona horaria
     
     let groupMetadata = null;
     let groupAdmins = [];
@@ -51,30 +50,22 @@ export default async (client, m) => {
 
     if (m.isGroup) {
         groupMetadata = await client.groupMetadata(chatJid).catch(() => null);
-        groupName = groupMetadata?.subject || '';
+        groupName = groupMetadata?.subject || 'Grupo Desconocido';
         groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || [];
     }  
 
-    // --- VALIDACIÓN DE ROLES POR ID DECODIFICADO ---
+    // --- ROLES ---
     const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === botJid) : false;
     const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === senderJid) : false;
-    
-    const owners = [
-        botJid, 
-        ...(settings.owner ? [settings.owner] : []), 
-        ...global.owner.map(num => num.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
-    ];
+    const owners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num.replace(/[^0-9]/g, '') + '@s.whatsapp.net')];
     const isOwners = owners.map(v => client.decodeJid(v)).includes(senderJid);
-
-    // --- FILTROS DE SEGURIDAD ---
-    if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
-    if (chat?.isBanned && !isOwners && !isAdmins && !m.key.fromMe) return;
 
     // --- PROCESAMIENTO DE PREFIJOS ---
     const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix || '!'];
     const prefixRegex = new RegExp('^[' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']', 'i');
     
-    if (!prefixRegex.test(m.text)) return;
+    const isCmd = prefixRegex.test(m.text);
+    if (!isCmd) return;
 
     const usedPrefix = m.text.match(prefixRegex)[0];
     const args = m.text.slice(usedPrefix.length).trim().split(/ +/);
@@ -83,23 +74,33 @@ export default async (client, m) => {
 
     if (!command) return;
 
-    // Log único en consola
-    console.log(chalk.bold.cyan(`[ ID: ${chatJid.split('@')[0]} ]`) + chalk.white(` Comando: ${command} | De: ${pushname}`));
+    // --- LOGS DE CONSOLA (DISEÑO ORIGINAL RECUPERADO) ---
+    console.log(chalk.bold.blue(`╭────────────────────────────···
+│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}
+│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(time)}
+│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}
+│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(senderJid)}
+${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado')}
+${'│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(chatJid)}
+│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.white.bgBlack(' ' + command + ' ')}
+╰────────────────────────────···\n`));
+
+    // --- FILTROS DE ACCESO ---
+    if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
+    if (chat?.isBanned && !isOwners && !isAdmins && !m.key.fromMe) return;
 
     const cmdData = global.comandos.get(command);
-    if (!cmdData) return; // Si no existe, ignoramos en silencio para evitar spam
+    if (!cmdData) return;
 
     // --- VERIFICACIÓN DE PERMISOS ---
-    if (cmdData.isAdmin && !isAdmins && !isOwners) return m.reply("《✧》 Solo Admins. ♡");
-    if (cmdData.botAdmin && !isBotAdmins) return m.reply("《✧》 ¡Hazme Admin primero! ♡");
-    if (cmdData.isOwner && !isOwners) return;
+    if (cmdData.isAdmin && !isAdmins && !isOwners) return m.reply("《✧》 Este comando es solo para Admins. ♡");
+    if (cmdData.botAdmin && !isBotAdmins) return m.reply("《✧》 Necesito ser Admin del grupo para esto. ♡");
 
-    // --- EJECUCIÓN DEL COMANDO ---
+    // --- EJECUCIÓN ---
     try {
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
-        // Ejecución con JID limpio
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
         if (result && result.key) {
@@ -108,7 +109,7 @@ export default async (client, m) => {
         }
         
     } catch (error) {
-        console.error(`ERROR EN ID ${chatJid}:`, error);
+        console.error(chalk.red(`[ERROR EN ${command}]:`), error);
     }
     
     level(m);

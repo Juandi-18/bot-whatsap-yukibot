@@ -20,7 +20,7 @@ export default {
     const chat = global.db.data.chats[chatId] || {};
     const chatUsers = chat.users || {};
     const botId = client.user.id.split(':')[0] + "@s.whatsapp.net";
-    const botSettings = global.db.data.settings[botId] || {}; // Aseguramos que exista
+    const botSettings = global.db.data.settings[botId] || {}; 
     const botname = botSettings.botname || 'YukiBot';
     const monedas = botSettings.currency || 'Monedas';
     
@@ -61,9 +61,9 @@ export default {
     const rawPrimary = typeof chat.primaryBot === 'string' ? chat.primaryBot : '';
     const botprimary = rawPrimary.endsWith('@s.whatsapp.net') ? `@${rawPrimary.split('@')[0]}` : 'Aleatorio';
     
-    // --- AQUÍ SE AGREGA LA LECTURA DEL MODO OWNER ---
     const isOwnerModeOn = botSettings.onlyOwnerMode ? '✓ Activado' : '✘ Desactivado';
 
+    // --- AGREGAMOS LA CONFIGURACIÓN AL OBJETO ---
     const settings = {
       bot: chat.isBanned ? '✘ Desactivado' : '✓ Activado',
       antilinks: chat.antilinks ? '✓ Activado' : '✘ Desactivado',
@@ -74,7 +74,8 @@ export default {
       economy: chat.economy ? '✓ Activado' : '✘ Desactivado',
       nsfw: chat.nsfw ? '✓ Activado' : '✘ Desactivado',
       adminmode: chat.adminonly ? '✓ Activado' : '✘ Desactivado',
-      onlyowner: isOwnerModeOn, // <--- Lo agregamos al objeto settings
+      familyFriendly: chat.familyFriendly ? '✓ Activado' : '✘ Desactivado', // <--- NUEVO
+      onlyowner: isOwnerModeOn,
       botprimary: botprimary
     };
 
@@ -97,14 +98,13 @@ export default {
       message += `✐ Gacha › *${settings.gacha}*\n`;
       message += `✐ Economía › *${settings.economy}*\n`;
       message += `✐ Nsfw › *${settings.nsfw}*\n`;
+      message += `✐ FamilyFriendly › *${settings.familyFriendly}*\n`; // <--- NUEVO
       message += `✐ ModoAdmin › *${settings.adminmode}*\n`;
-      message += `✐ Solo Dueño › *${settings.onlyowner}*`; // <--- Lo mostramos en la lista
+      message += `✐ Solo Dueño › *${settings.onlyowner}*`;
 
       const mentionOw = groupMetadata.owner ? groupMetadata.owner : '';
       const mentions = [rawPrimary, mentionOw].filter(Boolean);
       
-      // NOTA: Asegúrate de que 'dev' esté definido en tu entorno o en este archivo.
-      // Si te da error de 'dev is not defined', cámbialo por un texto como 'Desarrollador'
       const footerText = typeof dev !== 'undefined' ? dev : 'YukiBot Info'; 
 
       return await client.sendContextInfoIndex(m.chat, message.trim(), {}, null, false, mentions, { banner: groupBanner, title: groupName, body: footerText, redes: botSettings.link })

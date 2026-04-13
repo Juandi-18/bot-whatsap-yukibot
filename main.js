@@ -13,169 +13,121 @@ import { getGroupAdmins } from './core/message.js';
 seeCommands();
 
 export default async (client, m) => {
-  if (!m || !m.chat) return;
+    if (!m || !m.chat) return;
 
-  // --- REGISTRO GLOBAL DE MENSAJES PARA EL COMANDO CLEAN ---
-  if (!client.messages) client.messages = {};
-  if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
-  
-  client.messages[m.chat].array.push(m);
-  
-  if (client.messages[m.chat].array.length > 100) {
-    client.messages[m.chat].array.shift();
-  }
-
-  const sender = m.sender;
-  let body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectReply?.selectedRowId || m.message.templateButtonReplyMessage?.selectedId || '';
-  
-  if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16) || (m.id.startsWith("B24E") && m.id.length === 20))) return
-  
-  initDB(m, client)
-  antilink(client, m);
-
-  const from = m.key.remoteJid;
-  const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net' || client.user.lid;
-  const chat = global.db.data.chats[m.chat] || {}
-  const settings = global.db.data.settings[botJid] || {}
-  const user = global.db.data.users[sender] ||= {}
-  const users = chat.users[sender] || {}
-
-  // --- REGISTRO DE ACTIVIDAD (ESCUDO ANTIRROBO) ---
-  // Esta línea permite que el comando !steal sepa si el usuario ha estado activo
-  users.lastCmd = Date.now(); 
-
-  const pushname = m.pushName || 'Sin nombre';
-  
-  let groupMetadata = null
-  let groupAdmins = []
-  let groupName = ''
-  if (m.isGroup) {
-    groupMetadata = await client.groupMetadata(m.chat).catch(() => null)
-    groupName = groupMetadata?.subject || ''
-    groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || []
-  }  
-
-  const pureBotNumber = client.user.id.split(':')[0]; 
-  const pureSenderNumber = sender.split(':')[0].split('@')[0]; 
-
-  const isBotAdmins = m.isGroup ? groupAdmins.some(p => p.id.startsWith(pureBotNumber)) : false;
-  const isAdmins = m.isGroup ? groupAdmins.some(p => p.id.startsWith(pureSenderNumber)) : false;
-  const isOwners = [botJid, ...(settings.owner ? [settings.owner] : []), ...global.owner.map(num => num + '@s.whatsapp.net')].map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
-
-  // Comentado para pruebas
-// if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
-  }
-
-  // Plugins All
-  for (const name in global.plugins) {
-    const plugin = global.plugins[name];
-    if (plugin && typeof plugin.all === "function") {
-      try {
-        await plugin.all.call(client, m, { client });
-      } catch (err) {
-        console.error(`Error en plugin.all -> ${name}`, err);
-      }
+    // --- REGISTRO GLOBAL DE MENSAJES PARA EL COMANDO CLEAN ---
+    if (!client.messages) client.messages = {};
+    if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
+    
+    client.messages[m.chat].array.push(m);
+    
+    if (client.messages[m.chat].array.length > 100) {
+        client.messages[m.chat].array.shift();
     }
-  }
 
-  const today = new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-');
-  if (!users.stats) users.stats = {};
-  if (!users.stats[today]) users.stats[today] = { msgs: 0, cmds: 0 };
-  users.stats[today].msgs++;
-  
-  // Configuración de prefijos
-  const rawBotname = settings.namebot || 'Yuki';
-  const tipo = settings.type || 'Sub';
-  const cleanBotname = rawBotname.replace(/[^a-zA-Z0-9\s]/g, '')
-  const namebot = cleanBotname || 'Yuki';
-  const shortForms = [namebot.charAt(0), namebot.split(" ")[0], tipo.split(" ")[0], namebot.split(" ")[0].slice(0, 2), namebot.split(" ")[0].slice(0, 3)];
-  const prefixes = shortForms.map(name => `${name}`);
-  prefixes.unshift(namebot);
-  let prefix;
-  if (Array.isArray(settings.prefix) || typeof settings.prefix === 'string') {
-    const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix];
-    prefix = new RegExp('^(' + prefixes.join('|') + ')?(' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'i');
-  } else if (settings.prefix === true) {
-    prefix = new RegExp('^', 'i');
-  } else {
-    prefix = new RegExp('^(' + prefixes.join('|') + ')?', 'i');
-  }
-  
-  const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-  let pluginPrefix = client.prefix ? client.prefix : prefix;
-  let matchs = pluginPrefix instanceof RegExp ? [[pluginPrefix.exec(m.text), pluginPrefix]] : Array.isArray(pluginPrefix) ? pluginPrefix.map(p => {
-    let regex = p instanceof RegExp ? p : new RegExp(strRegex(p));
-    return [regex.exec(m.text), regex];
-  }) : typeof pluginPrefix === 'string' ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]] : [[null, null]];
-  let match = matchs.find(p => p[0]);
+    const sender = m.sender;
+    let body = m.message?.conversation || m.message?.extendedTextMessage?.text || m.message?.imageMessage?.caption || m.message?.videoMessage?.caption || '';
+    
+    if ((m.id.startsWith("3EB0") || (m.id.startsWith("BAE5") && m.id.length === 16) || (m.id.startsWith("B24E") && m.id.length === 20))) return;
+    
+    initDB(m, client);
+    antilink(client, m);
 
-  // Filtro de Before
-  for (const name in global.plugins) {
-    const plugin = global.plugins[name];
-    if (!plugin) continue;
-    if (plugin.disabled) continue;
-    if (typeof plugin.before === "function") {
-      try {
-        if (await plugin.before.call(client, m, { client })) continue;
-      } catch (err) {
-        console.error(`Error en plugin.before -> ${name}`, err);
-      }
+    const from = m.chat;
+    const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net';
+    const chat = global.db.data.chats[m.chat] || {};
+    const settings = global.db.data.settings[botJid] || {};
+    const user = global.db.data.users[sender] ||= {};
+    const users = chat.users ? chat.users[sender] || {} : {};
+
+    // --- REGISTRO DE ACTIVIDAD ---
+    if (users) users.lastCmd = Date.now(); 
+
+    const pushname = m.pushName || 'Sin nombre';
+    
+    let groupMetadata = null;
+    let groupAdmins = [];
+    let groupName = '';
+    if (m.isGroup) {
+        groupMetadata = await client.groupMetadata(m.chat).catch(() => null);
+        groupName = groupMetadata?.subject || '';
+        groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || [];
+    }  
+
+    // --- IDENTIFICACIÓN DE ROLES (MEJORADA) ---
+    const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(botJid)) : false;
+    const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === client.decodeJid(sender)) : false;
+    
+    const owners = [
+        botJid, 
+        ...(settings.owner ? [settings.owner] : []), 
+        ...global.owner.map(num => num.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
+    ];
+    const isOwners = owners.map(v => client.decodeJid(v)).includes(client.decodeJid(sender));
+
+    // --- FILTROS DE ACCESO (SANEADOS) ---
+    
+    // Modo Solo Dueño (Solo bloquea si está encendido en la DB)
+    if (settings.onlyOwnerMode && !isOwners && !m.key.fromMe) return;
+
+    // Filtro de Baneos de Grupo
+    if (chat?.isBanned && !isOwners && !isAdmins && !m.key.fromMe) return;
+
+    // --- PROCESAMIENTO DE PREFIJOS Y COMANDOS ---
+    const rawBotname = settings.namebot || 'Yuki';
+    const namebot = rawBotname.replace(/[^a-zA-Z0-9\s]/g, '') || 'Yuki';
+    
+    let usedPrefix = '/'; // Prefijo por defecto si falla el regex
+    const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix || '!'];
+    const prefixRegex = new RegExp('^[' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']', 'i');
+    
+    const isCmd = prefixRegex.test(m.text);
+    if (!isCmd) return;
+
+    usedPrefix = m.text.match(prefixRegex)[0];
+    let args = m.text.slice(usedPrefix.length).trim().split(/ +/);
+    let command = args.shift().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    let text = args.join(' ');
+
+    if (!command) return;
+
+    // Log de consola con colores
+    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${botJid}\n│ ${chalk.bold.yellow('Fecha')}: ${moment().format('DD/MM/YY HH:mm:ss')}\n│ ${chalk.bold.blueBright('Usuario')}: ${pushname}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + groupName : '│' + chalk.bold.green(' Privado')}\n│ ${chalk.bold.cyanBright('Comando')}: ${command}\n╰────────────────────────────···\n`));
+
+    const cmdData = global.comandos.get(command);
+    if (!cmdData) {
+        return m.reply(`ꕤ El comando *${usedPrefix + command}* no existe. Usa *${usedPrefix}help* para ver la lista.`);
     }
-  }
 
-  if (!match) return;
+    // --- VALIDACIÓN DE PERMISOS DEL COMANDO ---
+    if (cmdData.isAdmin && !isAdmins && !isOwners) {
+        return m.reply("《✧》 Este comando es solo para *Administradores* del grupo. ♡");
+    }
 
-  let usedPrefix = (match[0] || [])[0] || '';
-  let args = m.text.slice(usedPrefix.length).trim().split(" ");
-  let command = (args.shift() || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  let text = args.join(' ');
-  if (!command) return;
+    if (cmdData.botAdmin && !isBotAdmins) {
+        return m.reply("《✧》 Necesito ser *Administrador* para ejecutar esta acción. ♡");
+    }
 
-  // Log de comandos
-  if (m.message || !chatData.primaryBot || chatData.primaryBot === botJid) {
-    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(moment().format('DD/MM/YY HH:mm:ss'))}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n│ ${chalk.bold.magentaBright('Remitente')}: ${gradient('deepskyblue', 'darkorchid')(sender)}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado') + ': ' + gradient('pink', 'magenta')('Chat Privado')}\n${'│' + chalk.bold.magenta(' ID') + ': ' + gradient('violet', 'midnightblue')(m.isGroup ? from : 'Chat Privado')}\n│ ${chalk.bold.cyanBright('Comando usado')}: ${chalk.gray(command ? command : 'No Command')}\n╰────────────────────────────···\n`));
-  }
-  
- 
-  }
+    if (cmdData.isOwner && !isOwners) {
+        return m.reply("《✧》 Este comando es exclusivo de mi *Creador*. ♡");
+    }
 
-  if (chat?.isBanned && !(command === 'bot' && (text === 'on' || args[0] === 'on')) && !isOwners && !isAdmins && !m.key.fromMe) {
-      return; 
-  }
-
-  const cmdData = global.comandos.get(command);
-  if (!cmdData) {
-      if (settings.prefix === true) return;
-      await client.readMessages([m.key]);
-      return m.reply(`ꕤ El comando *${command}* no existe.`);
-  }
-
-  if (cmdData.isAdmin) {
-    const tienePermiso = isAdmins || isOwners || m.key.fromMe;
-      if (!tienePermiso) {
-        return client.reply(m.chat, "❌ Solo Admins, el Dueño o el Bot pueden usar esto.", m);
-      }
-  }
-
-  if (cmdData.botAdmin && !isBotAdmins) {
-      return client.reply(m.chat, "❌ *Error de permisos*\nNecesito ser Administrador del grupo para realizar esta acción.", m);
-  }
-
-  try {
-      await client.readMessages([m.key]);
-      user.usedcommands = (user.usedcommands || 0) + 1;
-      users.stats[today].cmds++;
-      
-      const result = await cmdData.run(client, m, args, usedPrefix, command, text);
-      
-      if (result && result.key) {
-         if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
-         client.messages[m.chat].array.push(result);
-      }
-      
-  } catch (error) {
-      console.error("Error en ejecución:", error);
-      return await client.sendMessage(m.chat, { text: `《✧》 Error: ${error.message}` }, { quoted: m });
-  }
-  level(m);
+    // --- EJECUCIÓN ---
+    try {
+        await client.readMessages([m.key]);
+        if (user) user.usedcommands = (user.usedcommands || 0) + 1;
+        
+        const result = await cmdData.run(client, m, args, usedPrefix, command, text);
+        
+        if (result && result.key) {
+            if (!client.messages[m.chat]) client.messages[m.chat] = { array: [] };
+            client.messages[m.chat].array.push(result);
+        }
+        
+    } catch (error) {
+        console.error("Error en ejecución:", error);
+        await client.sendMessage(m.chat, { text: `《✧》 Error Interno: ${error.message}` }, { quoted: m });
+    }
+    
+    level(m);
 };

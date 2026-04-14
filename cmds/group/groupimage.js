@@ -1,5 +1,5 @@
 export default {
-    command: ['groupimage', 'setgroupimage', 'setppgc'],
+    command: ['groupimage', 'groupimg', 'setppgc'],
     category: 'grupo',
     isAdmin: true,
     botAdmin: true,

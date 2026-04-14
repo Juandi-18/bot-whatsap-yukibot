@@ -13,7 +13,7 @@ import level from './cmds/level.js';
 seeCommands();
 
 // --- LISTA NEGRA GLOBAL ---
-global.prohibitedWords = ['sexo', 'porn', 'hentai', 'xnx', 'xxx', 'nude', 'tetas', 'pene', 'culo', 'ass', 'erotico', 'pedofilia', 'gore', 'cp','r34','rule','rule34','boobs'];
+global.prohibitedWords = ['sexo', 'porn', 'hentai', 'xnx', 'xxx', 'nude', 'tetas', 'pene', 'culo', 'ass', 'erotico', 'pedofilia', 'gore', 'cp','r34','rule','rule34','boobs','mujeres en bikini','mujeres desnudas','mujerees con poca ropa'];
 
 export default async (client, m) => {
     if (!m || !m.chat) return;

@@ -12,9 +12,6 @@ import level from './cmds/level.js';
 // Cargamos los comandos al iniciar
 seeCommands();
 
-// --- LISTA NEGRA GLOBAL ---
-global.prohibitedWords = ['sexo','mujeres lactando','mujeres lacnddo','mujeres en bikini', 'porn', 'hentai', 'xnx', 'xxx', 'nude', 'tetas', 'pene', 'culo', 'ass', 'erotico', 'pedofilia', 'gore', 'cp','r34','rule','rule34','boobs','mujeres en bikini','mujeres desnudas','mujerees con poca ropa'];
-
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
@@ -23,13 +20,14 @@ export default async (client, m) => {
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
-    // --- 2. REGISTRO DE MEMORIA ---
+    // --- 2. REGISTRO DE MEMORIA (Para que el comando !del funcione) ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
 
-    // Guarda TODO (Stickers, Imágenes, Texto, etc.) para que !del funcione con todo
+    // Guarda TODO (Stickers, Imágenes, Texto, etc.)
     client.messages[chatJid].array.push(m); 
 
+    // Mantenemos un límite de 100 mensajes para que Termux no se sature de memoria
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
     // Filtros de bots y WhatsApp Web
@@ -102,7 +100,7 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY (Prioridad Máxima) ---
+    // --- 9. FILTRO FAMILY FRIENDLY (Prioridad Máxima & Anti-Evasión) ---
     if (chat.familyFriendly) {
         
         // A. Bloquear comandos de administración de NSFW
@@ -110,20 +108,47 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
             return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios en el contenido sensible.");
         }
 
-        // B. Bloquear categorías NSFW o comandos de imagen
+        // B. Bloquear categorías NSFW o comandos de imagen directa
         if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image', 'pinterest'].includes(command)) {
             return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. El contenido sensible está bloqueado.");
         }
 
-        // C. Filtro de Búsqueda Inteligente (TikTok, YouTube, etc.)
+        // C. Filtro de Búsqueda Inteligente y Anti-Evasión (TikTok, YouTube, etc.)
         const searchCommands = ['tiktok', 'tt', 'tts', 'yts', 'ytsearch', 'google'];
         if (searchCommands.includes(command) && text) {
-            const isProhibited = global.prohibitedWords.some(word => 
-                new RegExp(`\\b${word}\\b`, 'i').test(text.toLowerCase())
-            );
             
+            // Limpieza Extrema del Texto
+            let cleanText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            
+            // Revertir Leetspeak
+            cleanText = cleanText.replace(/[0@]/g, 'o')
+                                 .replace(/1/g, 'i')
+                                 .replace(/3/g, 'e')
+                                 .replace(/4/g, 'a')
+                                 .replace(/5/g, 's')
+                                 .replace(/7/g, 't');
+            
+            // Texto sin espacios (para detectar p.o.r.n.o o p o r n o)
+            const squishedText = cleanText.replace(/[^a-z0-9]/g, ''); 
+
+            // Raíces Fuertes (bloquean todo)
+            const hardcoreRoots = [
+                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 
+                'boobs', 'tetas', 'pene', 'culo', 'pedofil', 'lactand', 'bikini', 'desnud'
+            ];
+            
+            // Palabras Exactas (requieren espacios para no bloquear palabras sanas)
+            const exactWords = ['sexo', 'cp', 'nude', 'ass'];
+
+            // Verificación Dual
+            let isProhibited = hardcoreRoots.some(root => squishedText.includes(root));
+            
+            if (!isProhibited) {
+                isProhibited = exactWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(cleanText));
+            }
+
             if (isProhibited) {
-                return m.reply("⚠️ Tu búsqueda contiene palabras restringidas por el filtro *Family Friendly*.");
+                return m.reply("⚠️ Tu búsqueda contiene variaciones de palabras restringidas por el escudo *Family Friendly*. ♡");
             }
         }
     }
@@ -144,8 +169,10 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
-        const result = await cmdData.run(client, m, args, usedPrefix, command, text);
+        // Ejecutamos el comando y guardamos el resultado
+        const result = await cmdData.run(client, m, { args, usedPrefix, command, text });
         
+        // Guardamos la respuesta del bot en la memoria para que !del la pueda borrar
         if (result && result.key) {
             if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
             client.messages[chatJid].array.push(result);

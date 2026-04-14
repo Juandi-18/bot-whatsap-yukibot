@@ -3,7 +3,7 @@ import fetch from 'node-fetch'
 export default {
   command: ['twitter', 'x', 'xdl'],
   category: 'downloader',
-  run: async (client, m, args) => {
+  run: async (client, m, { args, usedPrefix, command, text }) => {
     if (!args[0]) {
       return m.reply('《✧》 Por favor, ingrese un enlace de Twitter/X.')
     }

@@ -287,7 +287,7 @@ grupo: `\n» ˚୨•(=^●ω●^=)• ⊹ \`GROUPS\` ⊹
 > Activar/desactivar los comandos de GACHA.
 ꕤ \`$prefixgoodbye\` » \`$prefixdespedida\`
 > Activar/desactivar la despedida.
-ꕤ \`$prefixsetgpbaner\`
+ꕤ \`groupimage\` » \`groupimg\` » \`$setppgc\`
 > Cambiar la imagen o banner del grupo.
 ꕤ \`$prefixsetgpname\`
 > Cambiar el nombre del grupo.

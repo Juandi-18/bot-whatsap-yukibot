@@ -2,7 +2,7 @@ import fs from 'fs';
 import { watchFile, unwatchFile } from 'fs'
 import { fileURLToPath } from 'url'
 
-global.owner = ['51982219982']
+global.owner = ['5198324986']
 global.botNumber = ''
 global.pairingNumber = ""
 

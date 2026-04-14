@@ -81,7 +81,6 @@ export default {
 
     try {
       let message = `*「✿」Grupo ◢ ${groupName} ◤*\n\n`;
-      message += `➪ *Creador ›* ${groupCreator}\n`;
       message += `❖ Bot Principal › *${settings.botprimary}*\n`;
       message += `♤ Admins › *${groupAdmins.length}*\n`;
       message += `❒ Usuarios › *${totalParticipants}*\n`;

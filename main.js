@@ -110,12 +110,12 @@ export default async (client, m) => {
 
             // Raíces fuertes: Bloquean sin importar si están unidas a otras palabras
             const hardcoreRoots = [
-                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 
-                'boob', 'tetas', 'pene', 'pedofil', 'lactand', 'bikini', 'desnud', 'erotic', 'sexo', 'onlyfan'
+                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34','tetotas','tetonas','mujeres tetonas','vagina','potos' 
+                'boob', 'tetas', 'pene', 'pedofil', 'lactando', 'bikini', 'desnuda', 'erotic', 'sexo', 'onlyfan','porno','mujeres en bikini','mujeres en bikinis','culos','culazo','culazos','mujeres lactando','culito','teta','penes',''
             ];
             
             // Palabras exactas: Solo bloquean si están separadas (Evita bloquear "cálculo" o "computadora")
-            const exactWords = ['sex', 'cp', 'nude', 'ass', 'culo', 'puta', 'puto', 'zorra', 'pack'];
+            const exactWords = ['sex', 'cp', 'nude', 'ass', 'culo', 'puta', 'puto', 'zorra', 'pack','sexo','poto'];
 
             // Verificación implacable
             let isProhibited = hardcoreRoots.some(root => 

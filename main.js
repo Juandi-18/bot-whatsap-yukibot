@@ -11,7 +11,8 @@ import level from './cmds/level.js';
 
 seeCommands();
 
-global.prohibitedWords = ['sexo','mujeres lactando','mujereslanddo','mujeres en bikini', 'porn', 'hentai', 'xnx', 'xxx', 'nude', 'tetas', 'pene', 'culo', 'ass', 'erotico', 'pedofilia', 'gore', 'cp','r34','rule','rule34','boobs','mujeres en bikini','mujeres desnudas','mujerees con poca ropa'];
+// Mantenemos la variable por si algún otro comando tuyo la usa
+global.prohibitedWords = []; 
 
 export default async (client, m) => {
     if (!m || !m.chat) return;
@@ -83,44 +84,56 @@ export default async (client, m) => {
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
+    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Extrema) ---
     if (chat.familyFriendly) {
+        
         if (command === 'nsfw' || command === 'modonsfw') {
-            return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios en el contenido sensible.");
+            return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios.");
         }
 
         if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image', 'pinterest'].includes(command)) {
             return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. El contenido sensible está bloqueado.");
         }
 
-        const searchCommands = ['tiktok', 'tt', 'tts', 'yts', 'ytsearch', 'google'];
-        if (searchCommands.includes(command) && text) {
-            
+        // Se aplica a TODOS los comandos que lleven texto (Pinterest, Play, TikTok, etc)
+        if (text) {
+            // 1. Quitar tildes y minúsculas
             let cleanText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             
-            cleanText = cleanText.replace(/[0@]/g, 'o')
-                                 .replace(/1/g, 'i')
-                                 .replace(/3/g, 'e')
-                                 .replace(/4/g, 'a')
-                                 .replace(/5/g, 's')
-                                 .replace(/7/g, 't');
+            // 2. Revertir Letras disfrazadas de Números (Leetspeak)
+            cleanText = cleanText.replace(/[0@]/g, 'o').replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't');
             
-            const squishedText = cleanText.replace(/[^a-z0-9]/g, ''); 
+            // 3. Crear versiones para el escáner agresivo
+            const noSpaceText = cleanText.replace(/[^a-z0-9]/g, ''); // Quita espacios (p.o.r.n.o -> porno)
+            const squishedText = noSpaceText.replace(/(.)\1+/g, '$1'); // Quita repetidas (poooorrnoo -> porno)
+            const reversedText = squishedText.split('').reverse().join(''); // Voltea la palabra (onrop -> porno)
 
+            // Raíces fuertes: Bloquean sin importar si están unidas a otras palabras
             const hardcoreRoots = [
                 'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 
-                'boobs', 'tetas', 'pene', 'culo', 'pedofil', 'lactand', 'bikini', 'desnud'
+                'boob', 'tetas', 'pene', 'pedofil', 'lactand', 'bikini', 'desnud', 'erotic', 'sexo', 'onlyfan'
             ];
             
-            const exactWords = ['sexo', 'cp', 'nude', 'ass'];
+            // Palabras exactas: Solo bloquean si están separadas (Evita bloquear "cálculo" o "computadora")
+            const exactWords = ['sex', 'cp', 'nude', 'ass', 'culo', 'puta', 'puto', 'zorra', 'pack'];
 
-            let isProhibited = hardcoreRoots.some(root => squishedText.includes(root));
+            // Verificación implacable
+            let isProhibited = hardcoreRoots.some(root => 
+                noSpaceText.includes(root) || 
+                squishedText.includes(root) || 
+                reversedText.includes(root)
+            );
             
             if (!isProhibited) {
-                isProhibited = exactWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(cleanText));
+                const cleanReduced = cleanText.replace(/(.)\1+/g, '$1');
+                isProhibited = exactWords.some(word => 
+                    new RegExp(`\\b${word}\\b`, 'i').test(cleanText) || 
+                    new RegExp(`\\b${word}\\b`, 'i').test(cleanReduced)
+                );
             }
 
             if (isProhibited) {
-                return m.reply("⚠️ Tu búsqueda contiene variaciones de palabras restringidas por el escudo *Family Friendly*. ♡");
+                return m.reply("⚠️ El escudo *Family Friendly* bloqueó tu solicitud por detectar intentos de evasión de palabras prohibidas. ♡");
             }
         }
     }

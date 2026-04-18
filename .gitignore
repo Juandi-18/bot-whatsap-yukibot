@@ -26,3 +26,5 @@ node_modules/
 # --- ARCHIVOS DE SISTEMA ---
 .DS_Store
 Thumbs.db
+
+core/database.json

@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import { resolveLidToRealJid } from "../../core/utils.js";
 
-const captions = {      
+const captions = {       
   anal: (from, to) => from === to ? 'se la metió en el ano.' : 'se la metió en el ano a',
   cum: (from, to) => from === to ? 'se vino dentro de... Omitiremos eso.' : 'se vino dentro de',
   undress: (from, to) => from === to ? 'se está quitando la ropa' : 'le está quitando la ropa a',
@@ -44,63 +44,60 @@ function getRandomSymbol() {
 }
 
 const alias = {
-  anal: ['anal','violar'],
-  cum: ['cum'],
-  undress: ['undress','encuerar'],
-  fuck: ['fuck','coger'],
-  spank: ['spank','nalgada'],
-  lickpussy: ['lickpussy'],
-  fap: ['fap','paja'],
-  grope: ['grope'],
-  sixnine: ['sixnine','69'],
-  suckboobs: ['suckboobs'],
-  grabboobs: ['grabboobs'],
-  blowjob: ['blowjob','mamada','bj'],
-  boobjob: ['boobjob'],
-  yuri: ['yuri','tijeras'],
-  footjob: ['footjob'],
-  cummouth: ['cummouth'],
-  cumshot: ['cumshot'],
-  handjob: ['handjob'],
-  lickass: ['lickass'],
-  lickdick: ['lickdick'],
-  fingering: ['fingering'],
-  creampie: ['creampie'],
-  facesitting: ['facesitting'],
-  deepthroat: ['deepthroat'],
-  thighjob: ['thighjob'],
-  bondage: ['bondage'],
-  pegging: ['pegging'],
-  futanari: ['futanari', 'futa'],
-  yaoi: ['yaoi'],
-  bukkake: ['bukkake'],
-  orgy: ['orgy', 'orgia'],
-  squirting: ['squirt', 'squirting']
+  anal: ['anal','violar'], cum: ['cum'], undress: ['undress','encuerar'], fuck: ['fuck','coger'], spank: ['spank','nalgada'], lickpussy: ['lickpussy'], fap: ['fap','paja'], grope: ['grope'], sixnine: ['sixnine','69'], suckboobs: ['suckboobs'], grabboobs: ['grabboobs'], blowjob: ['blowjob','mamada','bj'], boobjob: ['boobjob'], yuri: ['yuri','tijeras'], footjob: ['footjob'], cummouth: ['cummouth'], cumshot: ['cumshot'], handjob: ['handjob'], lickass: ['lickass'], lickdick: ['lickdick'], fingering: ['fingering'], creampie: ['creampie'], facesitting: ['facesitting'], deepthroat: ['deepthroat'], thighjob: ['thighjob'], bondage: ['bondage'], pegging: ['pegging'], futanari: ['futanari', 'futa'], yaoi: ['yaoi'], bukkake: ['bukkake'], orgy: ['orgy', 'orgia'], squirting: ['squirt', 'squirting']
 };
 
 export default {
   command: ['anal','violar','cum','undress','encuerar','fuck','coger','spank','nalgada','lickpussy','fap','paja','grope','sixnine','69','suckboobs','grabboobs','blowjob','mamada','bj','boobjob','yuri','tijeras','footjob','cummouth','cumshot','handjob','lickass','lickdick','fingering','creampie','facesitting','deepthroat','thighjob','bondage','pegging','futanari','futa','yaoi','bukkake','orgy','orgia','squirt','squirting'],
   category: 'nsfw',
   run: async (client, m, args, usedPrefix, command) => {
-    if (!db.data.chats[m.chat].nsfw) return m.reply(`ꕥ El contenido *NSFW* está desactivado en este grupo.\n\nUn *administrador* puede activarlo con el comando:\n» *${usedPrefix}nsfw on*`);
+    if (!global.db.data.chats[m.chat].nsfw) return m.reply(`ꕥ El contenido *NSFW* está desactivado en este grupo.\n\nUn *administrador* puede activarlo con el comando:\n» *${usedPrefix}nsfw on*`);
+    
     const currentCommand = Object.keys(alias).find(key => alias[key].includes(command)) || command;
     if (!captions[currentCommand]) return;
-    let mentionedJid = m.mentionedJid || [];
-    let who2 = mentionedJid.length > 0 ? mentionedJid[0] : (m.quoted ? m.quoted.sender : m.sender);
+
+    // --- LÓGICA DE SELECCIÓN (AZAR INCLUIDO) ---
+    let who2;
+    if (m.mentionedJid[0]) {
+        who2 = m.mentionedJid[0];
+    } else if (m.quoted) {
+        who2 = m.quoted.sender;
+    } else {
+        // Si no hay mención ni cita, elegimos a alguien al azar del grupo
+        const groupMetadata = await client.groupMetadata(m.chat);
+        const participants = groupMetadata.participants.map(p => p.id);
+        // Filtramos al sender para que no se elija a sí mismo necesariamente
+        const filtered = participants.filter(p => p !== m.sender);
+        who2 = filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : m.sender;
+        
+        // Avisamos sutilmente que es al azar (opcional)
+        // m.reply(`*¡Acción aleatoria!* 🎲`); 
+    }
+
     const who = await resolveLidToRealJid(who2, client, m.chat);
+    
     const fromName = global.db.data.users[m.sender]?.name || '@'+m.sender.split('@')[0];
     const toName = global.db.data.users[who]?.name || '@'+who.split('@')[0];
     const genero = global.db.data.users[m.sender]?.genre || 'Oculto';
+    
     const captionText = captions[currentCommand](fromName, toName, genero);
     const caption = who !== m.sender ? `\`${fromName}.\` ${captionText} \`${toName}.\` ${getRandomSymbol()}.` : `\`${fromName}\` ${captionText} ${getRandomSymbol()}.`;
+    
     try {
-    const nsfw = './core/nsfw.json'
-    const nsfwData = JSON.parse(fs.readFileSync(nsfw))
+      const nsfw = './core/nsfw.json'
+      const nsfwData = JSON.parse(fs.readFileSync(nsfw))
       const videos = nsfwData[currentCommand];      
       const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-      return await client.sendMessage(m.chat, { video: { url: randomVideo }, gifPlayback: true, caption, mentions: [who, m.sender] }, { quoted: m });
+      
+      return await client.sendMessage(m.chat, { 
+          video: { url: randomVideo }, 
+          gifPlayback: true, 
+          caption, 
+          mentions: [who, m.sender] 
+      }, { quoted: m });
+      
     } catch (e) {
-      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. Please try again or contact support if the issue persists.\n> [Error: *${e.message}*]`);
+      return await m.reply(`> An unexpected error occurred while executing command *${usedPrefix + command}*. \n> [Error: *${e.message}*]`);
     }
   }
 };

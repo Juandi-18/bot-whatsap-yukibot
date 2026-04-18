@@ -87,11 +87,13 @@ command: ['angry','enojado','enojada','bleh','bored','aburrido','aburrida','clap
     const currentCommand = Object.keys(alias).find(key => alias[key].includes(command)) || command
     if (!captions[currentCommand]) return
     
-    // --- LÓGICA DE OBJETIVO (AZAR-FRIENDLY) ---
-    // Si m.mentionedJid trae datos (inyectados por el main), los usamos primero.
-    const who2 = (m.mentionedJid && m.mentionedJid.length > 0) 
-        ? m.mentionedJid[0] 
-        : (m.quoted ? m.quoted.sender : m.sender);
+// Forzamos la detección de la mención inyectada
+    let who2 = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : (m.quoted ? m.quoted.sender : m.sender);
+    
+    // Si por algún motivo se auto-eligió, intentamos recuperar la mención del contextInfo
+    if (who2 === m.sender && m.msg?.contextInfo?.mentionedJid?.[0]) {
+        who2 = m.msg.contextInfo.mentionedJid[0];
+    }
 
     const who = await resolveLidToRealJid(who2, client, m.chat)
     

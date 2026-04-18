@@ -112,7 +112,7 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
     if (cmdData.botAdmin && !isBotAdmins) return m.reply("《✧》 ¡Hazme Administrador del grupo primero! ♡");
     if (cmdData.isOwner && !isOwners) return;
 
-    // --- 10.5 INYECCIÓN DE AZAR (VERSION TRUJILLO ULTRA) ---
+// --- 10.5 INYECCIÓN DE AZAR (VERSION TRUJILLO FINAL REPARADA) ---
     if (['accion', 'social', 'nsfw', 'anime'].includes(cmdData.category)) {
         if (!m.mentionedJid[0] && !m.quoted) {
             if (m.isGroup && groupMetadata) {
@@ -121,11 +121,12 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
                 
                 if (filtered.length > 0) {
                     const randomUser = filtered[Math.floor(Math.random() * filtered.length)];
+                    
+                    // Inyectamos la mención en el array principal
                     m.mentionedJid = [randomUser];
                     
-                    // Aseguramos que el objeto msg y contextInfo existan para los comandos
-                    if (!m.msg) m.msg = m.message[Object.keys(m.message)[0]];
-                    if (m.msg) {
+                    // Solo inyectamos en m.msg si es un objeto y no un string
+                    if (m.msg && typeof m.msg === 'object') {
                         if (!m.msg.contextInfo) m.msg.contextInfo = {};
                         m.msg.contextInfo.mentionedJid = [randomUser];
                     }

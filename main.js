@@ -21,9 +21,11 @@ export default async (client, m) => {
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
-    // --- 2. REGISTRO DE MEMORIA (Para !del) ---
+    // --- 2. REGISTRO DE MEMORIA (Para !del / !delete) ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
+    
+    // Guardamos el mensaje actual en la memoria para poder borrarlo luego
     client.messages[chatJid].array.push(m); 
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
@@ -32,6 +34,9 @@ export default async (client, m) => {
     // --- 3. INICIALIZACIÓN DE SISTEMAS ---
     initDB(m, client);
     antilink(client, m);
+    
+    // Ejecutamos el motor de niveles en cada mensaje (XP Silenciosa)
+    await level(m);
 
     const db = global.db.data;
     const chat = db.chats[chatJid] || {};
@@ -41,9 +46,9 @@ export default async (client, m) => {
 
     if (users) users.lastCmd = Date.now(); 
 
-    // --- 4. METADATOS Y TIEMPO ---
+    // --- 4. METADATOS ---
     const pushname = m.pushName || 'Usuario';
-    const time = moment.tz('America/Bogota').format('DD/MM/YY HH:mm:ss'); 
+    const time = moment.tz('America/Lima').format('DD/MM/YY HH:mm:ss'); 
     
     let groupMetadata = null;
     let groupAdmins = [];
@@ -66,7 +71,7 @@ export default async (client, m) => {
     ];
     const isOwners = owners.map(v => client.decodeJid(v)).includes(senderJid);
 
-    // --- 6. PROCESAMIENTO DE PREFIJO Y TEXTO ---
+    // --- 6. PROCESAMIENTO DE COMANDO ---
     const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix || '!'];
     const prefixRegex = new RegExp('^[' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']', 'i');
     
@@ -88,67 +93,26 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
 │ ${chalk.bold.cyanBright('Comando')}: ${chalk.white.bgBlack(' ' + command + ' ')}
 ╰────────────────────────────···\n`));
 
-    // --- 8. FILTROS DE SEGURIDAD (Only Owner & Banned) ---
+    // --- 8. FILTROS BÁSICOS ---
     if (settings.onlyOwnerMode && !isOwners) return; 
     if (chat?.isBanned && !isOwners && !isAdmins) return;
 
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Nivel Trujillo) ---
+    // --- 9. FILTRO FAMILY FRIENDLY ---
     if (chat.familyFriendly) {
-        if (command === 'nsfw' || command === 'modonsfw') {
-            return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios.");
-        }
-
-        if (cmdData.category === 'nsfw' || ['imagen', 'img', 'image', 'pinterest'].includes(command)) {
-            return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. El contenido sensible está bloqueado.");
-        }
-
-        if (text) {
-            let cleanText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            cleanText = cleanText.replace(/[0@]/g, 'o').replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't');
-            
-            const noSpaceText = cleanText.replace(/[^a-z0-9]/g, ''); 
-            const squishedText = noSpaceText.replace(/(.)\1+/g, '$1'); 
-            const reversedText = squishedText.split('').reverse().join(''); 
-
-            const hardcoreRoots = [
-                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 'boob', 'teta', 
-                'pene', 'pedofil', 'lactand', 'bikini', 'desnud', 'erotic', 'sexo', 'onlyfan', 
-                'culo', 'poto', 'vagina', 'puta', 'puto', 'zorra'
-            ];
-            const exactWords = ['sex', 'cp', 'nude', 'ass', 'pack'];
-
-            let isProhibited = hardcoreRoots.some(root => 
-                noSpaceText.includes(root) || squishedText.includes(root) || reversedText.includes(root)
-            );
-            
-            if (!isProhibited) {
-                const cleanReduced = cleanText.replace(/(.)\1+/g, '$1');
-                isProhibited = exactWords.some(word => 
-                    new RegExp(`\\b${word}\\b`, 'i').test(cleanText) || new RegExp(`\\b${word}\\b`, 'i').test(cleanReduced)
-                );
-            }
-
-            if (isProhibited) {
-                return m.reply("⚠️ El escudo *Family Friendly* bloqueó tu solicitud por detectar variaciones de palabras prohibidas. ♡");
-            }
+        if (cmdData.category === 'nsfw' || ['nsfw', 'modonsfw'].includes(command)) {
+            return m.reply("⚠️ El modo *Family Friendly* está activo. Contenido bloqueado.");
         }
     }
 
     // --- 10. VALIDACIÓN DE PERMISOS ---
-    if (cmdData.isAdmin && !isAdmins && !isOwners) {
-        return m.reply("《✧》 Solo Admins pueden usar este comando. ♡");
-    }
-
-    if (cmdData.botAdmin && !isBotAdmins) {
-        return m.reply("《✧》 ¡Hazme Administrador del grupo primero! ♡");
-    }
-
+    if (cmdData.isAdmin && !isAdmins && !isOwners) return m.reply("《✧》 Solo Admins pueden usar este comando. ♡");
+    if (cmdData.botAdmin && !isBotAdmins) return m.reply("《✧》 ¡Hazme Administrador del grupo primero! ♡");
     if (cmdData.isOwner && !isOwners) return;
 
-// --- 10.5 INYECCIÓN DE AZAR (VERSION TRUJILLO ULTRA) ---
+    // --- 10.5 INYECCIÓN DE AZAR (VERSION TRUJILLO ULTRA) ---
     if (['accion', 'social', 'nsfw', 'anime'].includes(cmdData.category)) {
         if (!m.mentionedJid[0] && !m.quoted) {
             if (m.isGroup && groupMetadata) {
@@ -157,12 +121,10 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
                 
                 if (filtered.length > 0) {
                     const randomUser = filtered[Math.floor(Math.random() * filtered.length)];
-                    
-                    // Inyectamos en el mensaje principal
                     m.mentionedJid = [randomUser];
                     
-                    // Inyectamos en las propiedades internas de Baileys
-                    if (!m.message) m.message = {};
+                    // Aseguramos que el objeto msg y contextInfo existan para los comandos
+                    if (!m.msg) m.msg = m.message[Object.keys(m.message)[0]];
                     if (m.msg) {
                         if (!m.msg.contextInfo) m.msg.contextInfo = {};
                         m.msg.contextInfo.mentionedJid = [randomUser];
@@ -177,8 +139,10 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
+        // Ejecutamos el comando
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
+        // Si el comando devuelve un mensaje (como un !level), lo guardamos en memoria para borrarlo con !del
         if (result && result.key) {
             if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
             client.messages[chatJid].array.push(result);
@@ -186,7 +150,6 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
         
     } catch (error) {
         console.error(chalk.red(`[ERROR]:`), error);
+        m.reply(`《✧》 Ocurrió un error al ejecutar el comando: ${error.message} ♡`);
     }
-    
-    level(m);
 };

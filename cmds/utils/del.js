@@ -5,55 +5,68 @@ export default {
     category: 'utils',
     isAdmin: true, 
     botAdmin: true, 
-    run: async (client, m, { args, usedPrefix, command }) => {
+    run: async (client, m, args) => { // Simplificamos la entrada para evitar errores de undefined
         try {
             const chatId = m.chat;
 
-            // --- FUNCIÓN 1: BORRADO POR RESPUESTA (Para videos de TikTok, etc.) ---
+            // --- FUNCIÓN 1: BORRADO POR RESPUESTA ---
             if (m.quoted) {
-                await client.sendMessage(chatId, { delete: m.quoted.fakeObj.key })
+                // Usamos una forma más segura de obtener la llave del mensaje citado
+                const key = {
+                    remoteJid: m.chat,
+                    fromMe: m.quoted.fromMe,
+                    id: m.quoted.id,
+                    participant: m.quoted.sender
+                };
+                await client.sendMessage(chatId, { delete: key });
                 return await m.react('🗑️');
             }
 
-            // --- FUNCIÓN 2: LIMPIEZA MASIVA (Tu código original optimizado) ---
-            if (!client.messages || !client.messages[chatId] || client.messages[chatId].array.length === 0) {
+            // --- FUNCIÓN 2: LIMPIEZA MASIVA ---
+            // Verificamos existencia de la memoria con seguridad
+            if (!client.messages || !client.messages[chatId] || !client.messages[chatId].array || client.messages[chatId].array.length === 0) {
                 return m.reply("《✧》 No hay mensajes en mi memoria para limpiar. ♡");
             }
 
-            let amount = parseInt(args[0]) || 10;
+            // Convertimos el argumento a número de forma segura
+            let amount = parseInt(args && args[0] ? args[0] : 10);
+            if (isNaN(amount) || amount < 1) amount = 10;
             if (amount > 50) amount = 50; 
-            if (amount < 1) amount = 1;
 
             const messagesToPurge = client.messages[chatId].array.slice(-amount).reverse();
-            const statusMsg = await client.reply(chatId, `「✿」 Iniciando limpieza de *${messagesToPurge.length}* mensajes... ꕤ`, m);
+            
+            // Usamos m.reply directamente para el estado
+            const statusMsg = await m.reply(`「✿」 Iniciando limpieza de *${messagesToPurge.length}* mensajes... ꕤ`);
 
             for (let msg of messagesToPurge) {
                 try {
-                    // Verificamos que el mensaje no sea el de estado para no borrarlo antes de tiempo
-                    if (msg.key.id === statusMsg.key.id) continue;
+                    // Evitamos borrar el mensaje de estado o mensajes inexistentes
+                    if (!msg || !msg.key || msg.key.id === statusMsg.key.id) continue;
                     
                     await client.sendMessage(chatId, { delete: msg.key });
-                    const waitTime = Math.floor(Math.random() * (1000 - 500 + 1)) + 500; // Un poco más rápido
-                    await delay(waitTime);
+                    await delay(500); // Velocidad constante para evitar ban/bloqueo
                 } catch {
                     continue;
                 }
             }
 
-            // Limpieza de memoria local
+            // Limpieza de memoria local filtrando IDs existentes
             client.messages[chatId].array = client.messages[chatId].array.filter(
-                msg => !messagesToPurge.includes(msg)
+                msg => !messagesToPurge.some(p => p.key.id === msg.key.id)
             );
 
-            await client.sendMessage(chatId, { delete: statusMsg.key });
-            const finalConfirm = await client.reply(chatId, `「✿」 Limpieza completada con éxito. ꕤ`, m);
+            // Borramos mensaje de estado y enviamos confirmación final
+            try { await client.sendMessage(chatId, { delete: statusMsg.key }); } catch {}
+            
+            const finalConfirm = await m.reply(`「✿」 Limpieza completada con éxito. ꕤ`);
             
             await delay(3000);
-            await client.sendMessage(chatId, { delete: finalConfirm.key });
+            try { await client.sendMessage(chatId, { delete: finalConfirm.key }); } catch {}
 
         } catch (e) {
             console.error("ERROR EN DEL:", e);
-            m.reply("《✧》 Ocurrió un error inesperado durante la limpieza. ♡");
+            // No dejamos que el bot se quede callado si falla
+            return m.reply(`《✧》 Error: ${e.message} ♡`);
         }
     },
 };

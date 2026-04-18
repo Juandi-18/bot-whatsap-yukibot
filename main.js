@@ -148,12 +148,28 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
 
     if (cmdData.isOwner && !isOwners) return;
 
+    // --- 10.5 INYECCIÓN DE AZAR (MASIVO) ---
+    // Si la categoría es de acción, social o nsfw y no hay mención ni respuesta...
+    if (['accion', 'social', 'nsfw'].includes(cmdData.category)) {
+        if (!m.mentionedJid[0] && !m.quoted) {
+            if (m.isGroup && groupMetadata) {
+                const participants = groupMetadata.participants.map(p => p.id);
+                // Evitamos elegir al bot y al sender para que sea más divertido
+                const filtered = participants.filter(p => p !== senderJid && p !== botJid);
+                if (filtered.length > 0) {
+                    const randomUser = filtered[Math.floor(Math.random() * filtered.length)];
+                    // Inyectamos la mención al azar
+                    m.mentionedJid = [randomUser];
+                }
+            }
+        }
+    }
+
     // --- 11. EJECUCIÓN FINAL ---
     try {
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
-        // Ejecución limpia compatible con tus comandos actualizados
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
         if (result && result.key) {
@@ -165,6 +181,5 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
         console.error(chalk.red(`[ERROR]:`), error);
     }
     
-    // Procesador de niveles silencioso
     level(m);
 };

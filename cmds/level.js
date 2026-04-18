@@ -1,5 +1,4 @@
 const growth = Math.pow(Math.PI / Math.E, 1.618) * Math.E * 0.75
-// Hemos fijado el multiplicador en 10 para quintuplicar la dificultad base
 const nuevoMultiplicador = 10 
 
 function xpRange(level, multiplier = nuevoMultiplicador) {
@@ -34,15 +33,13 @@ export default async (m) => {
     if (typeof user.exp !== 'number') user.exp = 0
     if (typeof user.level !== 'number') user.level = 0
 
-    // Sigues ganando la misma XP (10-20), pero ahora los niveles piden 5 veces más
+    // 1. Ganancia de XP Silenciosa
     const xpGanada = Math.floor(Math.random() * 11) + 10
     user.exp += xpGanada
 
-    // Actualización silenciosa (sin mensajes)
+    // 2. Subida de Nivel Silenciosa
     while (canLevelUp(user.level, user.exp, nuevoMultiplicador)) {
         user.level++
-        
-        // Bono de monedas por el esfuerzo extra
         const coinBonus = Math.floor(Math.random() * (8000 - 5000 + 1)) + 5000
         user.coins = (user.coins || 0) + coinBonus
     }
@@ -50,4 +47,33 @@ export default async (m) => {
     const { min, max } = xpRange(user.level, nuevoMultiplicador)
     user.minxp = min
     user.maxxp = max
+
+    // --- 3. RESPUESTA VISUAL (Comando !lvl o !level) ---
+    if (m.text.startsWith('!lvl') || m.text.startsWith('!level')) {
+        const xpEnEsteNivel = user.exp - min
+        const xpNecesariaEnEsteNivel = max - min
+        
+        // Evitamos división por cero o números negativos
+        const porcentaje = Math.max(0, Math.min(100, (xpEnEsteNivel / xpNecesariaEnEsteNivel) * 100))
+        const progresoCeldas = Math.min(10, Math.floor(porcentaje / 10))
+        const progressBar = "▓".repeat(progresoCeldas) + "░".repeat(10 - progresoCeldas)
+        
+        // El cálculo que te salía negativo, ahora blindado:
+        const faltaXp = Math.max(0, max - user.exp)
+
+        let txt = `﹒⌗﹒🌿 .ৎ˚₊‧  *ESTADO DE NIVEL* ♡\n\n`
+        txt += `✿ *Usuario:* @${m.sender.split('@')[0]}\n`
+        txt += `✧ *Nivel:* ${user.level}\n`
+        txt += `✩ *Exp Total:* ${user.exp}\n`
+        txt += `✔ *Comandos:* ${user.usedcommands || 0}\n\n`
+        txt += `➩ *Progreso:* [${progressBar}] ${Math.floor(porcentaje)}%\n`
+        
+        if (faltaXp > 0) {
+            txt += `> Te faltan *${faltaXp}* puntos de XP para el nivel ${user.level + 1} ꕤ`
+        } else {
+            txt += `> ¡Estás a un mensaje de subir de nivel! ✨`
+        }
+
+        return m.reply(txt, null, { mentions: [m.sender] })
+    }
 }

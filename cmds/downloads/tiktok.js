@@ -58,7 +58,7 @@ export default {
 𖣣ֶㅤ֯⌗ ☆  ׄ ⬭ *Compartidos:* ${(v.stats?.shares || 0).toLocaleString()}
 𖣣ֶㅤ֯⌗ ❒  ׄ ⬭ *Audio:* ${v.music?.title || `[${v.author?.nickname || 'No disponible'}] original sound - ${v.author?.unique_id || 'unknown'}`}`.trim()
             return { type: 'video', data: { url: v.dl }, caption }
-          }).slice(0, 10)
+          }).slice(0, 2)
         await client.sendAlbumMessage(m.chat, medias, { quoted: m })
       }
     } catch (e) {

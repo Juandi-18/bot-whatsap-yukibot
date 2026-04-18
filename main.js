@@ -11,7 +11,6 @@ import level from './cmds/level.js';
 
 seeCommands();
 
-// Mantenemos la variable por si algún otro comando tuyo la usa
 global.prohibitedWords = []; 
 
 export default async (client, m) => {
@@ -84,7 +83,7 @@ export default async (client, m) => {
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Extrema) ---
+    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Mejorado) ---
     if (chat.familyFriendly) {
         
         if (command === 'nsfw' || command === 'modonsfw') {
@@ -95,29 +94,26 @@ export default async (client, m) => {
             return m.reply("⚠️ Este grupo está protegido por el modo *Family Friendly*. El contenido sensible está bloqueado.");
         }
 
-        // Se aplica a TODOS los comandos que lleven texto (Pinterest, Play, TikTok, etc)
         if (text) {
-            // 1. Quitar tildes y minúsculas
             let cleanText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             
-            // 2. Revertir Letras disfrazadas de Números (Leetspeak)
+            // Traductor de Leetspeak (0 -> o, 1 -> i, etc)
             cleanText = cleanText.replace(/[0@]/g, 'o').replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't');
             
-            // 3. Crear versiones para el escáner agresivo
-            const noSpaceText = cleanText.replace(/[^a-z0-9]/g, ''); // Quita espacios (p.o.r.n.o -> porno)
-            const squishedText = noSpaceText.replace(/(.)\1+/g, '$1'); // Quita repetidas (poooorrnoo -> porno)
-            const reversedText = squishedText.split('').reverse().join(''); // Voltea la palabra (onrop -> porno)
+            const noSpaceText = cleanText.replace(/[^a-z0-9]/g, ''); 
+            const squishedText = noSpaceText.replace(/(.)\1+/g, '$1'); 
+            const reversedText = squishedText.split('').reverse().join(''); 
 
-            // Raíces fuertes: Bloquean sin importar si están unidas a otras palabras
+            // Raíces fuertes: Bloquean incluso si están camufladas
             const hardcoreRoots = [
-                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34','tetotas','tetonas','mujeres tetonas','vagina','potos', 
-                'boob', 'tetas', 'pene', 'pedofil', 'lactando', 'bikini', 'desnuda', 'erotic', 'sexo', 'onlyfan','porno','mujeres en bikini','mujeres en bikinis','culos','culazo','culazos','mujeres lactando','culito','teta','penes'
+                'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 'boob', 'teta', 
+                'pene', 'pedofil', 'lactand', 'bikini', 'desnud', 'erotic', 'sexo', 'onlyfan', 
+                'culo', 'poto', 'vagina', 'puta', 'puto', 'zorra'
             ];
             
-            // Palabras exactas: Solo bloquean si están separadas (Evita bloquear "cálculo" o "computadora")
-            const exactWords = ['sex', 'cp', 'nude', 'ass', 'culo', 'puta', 'puto', 'zorra', 'pack','sexo','poto'];
+            // Palabras exactas
+            const exactWords = ['sex', 'cp', 'nude', 'ass', 'pack'];
 
-            // Verificación implacable
             let isProhibited = hardcoreRoots.some(root => 
                 noSpaceText.includes(root) || 
                 squishedText.includes(root) || 
@@ -133,7 +129,7 @@ export default async (client, m) => {
             }
 
             if (isProhibited) {
-                return m.reply("⚠️ El escudo *Family Friendly* bloqueó tu solicitud por detectar intentos de evasión de palabras prohibidas. ♡");
+                return m.reply("⚠️ El escudo *Family Friendly* bloqueó tu solicitud por detectar variaciones de palabras prohibidas. ♡");
             }
         }
     }
@@ -152,6 +148,7 @@ export default async (client, m) => {
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
+        // Ejecución normal sin llaves adicionales para evitar errores en comandos antiguos
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
         if (result && result.key) {

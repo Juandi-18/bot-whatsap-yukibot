@@ -16,19 +16,20 @@ global.prohibitedWords = [];
 export default async (client, m) => {
     if (!m || !m.chat) return;
 
+    // --- 1. NORMALIZACIÓN DE IDs ---
     const chatJid = client.decodeJid(m.chat);
     const senderJid = client.decodeJid(m.sender);
     const botJid = client.decodeJid(client.user.id.split(':')[0] + '@s.whatsapp.net');
 
+    // --- 2. REGISTRO DE MEMORIA (Para !del) ---
     if (!client.messages) client.messages = {};
     if (!client.messages[chatJid]) client.messages[chatJid] = { array: [] };
-
     client.messages[chatJid].array.push(m); 
-
     if (client.messages[chatJid].array.length > 100) client.messages[chatJid].array.shift();
 
     if (m.id.startsWith("BAE5") && m.id.length === 16) return; 
     
+    // --- 3. INICIALIZACIÓN DE SISTEMAS ---
     initDB(m, client);
     antilink(client, m);
 
@@ -40,6 +41,7 @@ export default async (client, m) => {
 
     if (users) users.lastCmd = Date.now(); 
 
+    // --- 4. METADATOS Y TIEMPO ---
     const pushname = m.pushName || 'Usuario';
     const time = moment.tz('America/Bogota').format('DD/MM/YY HH:mm:ss'); 
     
@@ -53,6 +55,7 @@ export default async (client, m) => {
         groupAdmins = groupMetadata?.participants.filter(p => (p.admin === 'admin' || p.admin === 'superadmin')) || [];
     }  
 
+    // --- 5. ROLES Y PERMISOS ---
     const isBotAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === botJid) : false;
     const isAdmins = m.isGroup ? groupAdmins.some(p => client.decodeJid(p.id) === senderJid) : false;
     
@@ -63,6 +66,7 @@ export default async (client, m) => {
     ];
     const isOwners = owners.map(v => client.decodeJid(v)).includes(senderJid);
 
+    // --- 6. PROCESAMIENTO DE PREFIJO Y TEXTO ---
     const prefixArray = Array.isArray(settings.prefix) ? settings.prefix : [settings.prefix || '!'];
     const prefixRegex = new RegExp('^[' + prefixArray.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']', 'i');
     
@@ -75,17 +79,24 @@ export default async (client, m) => {
 
     if (!command) return;
 
-    console.log(chalk.bold.blue(`╭────────────────────────────···\n│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}\n│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(time)}\n│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}\n${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado')}\n│ ${chalk.bold.cyanBright('Comando')}: ${chalk.white.bgBlack(' ' + command + ' ')}\n╰────────────────────────────···\n`));
+    // --- 7. LOGS DE CONSOLA ---
+    console.log(chalk.bold.blue(`╭────────────────────────────···
+│ ${chalk.cyan('Bot')}: ${gradient('lime', 'green')(botJid)}
+│ ${chalk.bold.yellow('Fecha')}: ${gradient('orange', 'yellow')(time)}
+│ ${chalk.bold.blueBright('Usuario')}: ${gradient('cyan', 'blue')(pushname)}
+${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lime')(groupName) : '│' + chalk.bold.green(' Privado')}
+│ ${chalk.bold.cyanBright('Comando')}: ${chalk.white.bgBlack(' ' + command + ' ')}
+╰────────────────────────────···\n`));
 
+    // --- 8. FILTROS DE SEGURIDAD (Only Owner & Banned) ---
     if (settings.onlyOwnerMode && !isOwners) return; 
     if (chat?.isBanned && !isOwners && !isAdmins) return;
 
     const cmdData = global.comandos.get(command);
     if (!cmdData) return;
 
-    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Mejorado) ---
+    // --- 9. FILTRO FAMILY FRIENDLY (Anti-Evasión Nivel Trujillo) ---
     if (chat.familyFriendly) {
-        
         if (command === 'nsfw' || command === 'modonsfw') {
             return m.reply("⚠️ El modo *Family Friendly* está activo. Debes desactivarlo (!ff off) para realizar cambios.");
         }
@@ -96,35 +107,27 @@ export default async (client, m) => {
 
         if (text) {
             let cleanText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            
-            // Traductor de Leetspeak (0 -> o, 1 -> i, etc)
             cleanText = cleanText.replace(/[0@]/g, 'o').replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't');
             
             const noSpaceText = cleanText.replace(/[^a-z0-9]/g, ''); 
             const squishedText = noSpaceText.replace(/(.)\1+/g, '$1'); 
             const reversedText = squishedText.split('').reverse().join(''); 
 
-            // Raíces fuertes: Bloquean incluso si están camufladas
             const hardcoreRoots = [
                 'porn', 'hentai', 'xnx', 'xxx', 'gore', 'rule34', 'r34', 'boob', 'teta', 
                 'pene', 'pedofil', 'lactand', 'bikini', 'desnud', 'erotic', 'sexo', 'onlyfan', 
                 'culo', 'poto', 'vagina', 'puta', 'puto', 'zorra'
             ];
-            
-            // Palabras exactas
             const exactWords = ['sex', 'cp', 'nude', 'ass', 'pack'];
 
             let isProhibited = hardcoreRoots.some(root => 
-                noSpaceText.includes(root) || 
-                squishedText.includes(root) || 
-                reversedText.includes(root)
+                noSpaceText.includes(root) || squishedText.includes(root) || reversedText.includes(root)
             );
             
             if (!isProhibited) {
                 const cleanReduced = cleanText.replace(/(.)\1+/g, '$1');
                 isProhibited = exactWords.some(word => 
-                    new RegExp(`\\b${word}\\b`, 'i').test(cleanText) || 
-                    new RegExp(`\\b${word}\\b`, 'i').test(cleanReduced)
+                    new RegExp(`\\b${word}\\b`, 'i').test(cleanText) || new RegExp(`\\b${word}\\b`, 'i').test(cleanReduced)
                 );
             }
 
@@ -134,6 +137,7 @@ export default async (client, m) => {
         }
     }
 
+    // --- 10. VALIDACIÓN DE PERMISOS ---
     if (cmdData.isAdmin && !isAdmins && !isOwners) {
         return m.reply("《✧》 Solo Admins pueden usar este comando. ♡");
     }
@@ -144,11 +148,12 @@ export default async (client, m) => {
 
     if (cmdData.isOwner && !isOwners) return;
 
+    // --- 11. EJECUCIÓN FINAL ---
     try {
         await client.readMessages([m.key]);
         user.usedcommands = (user.usedcommands || 0) + 1;
         
-        // Ejecución normal sin llaves adicionales para evitar errores en comandos antiguos
+        // Ejecución limpia compatible con tus comandos actualizados
         const result = await cmdData.run(client, m, args, usedPrefix, command, text);
         
         if (result && result.key) {
@@ -160,5 +165,6 @@ export default async (client, m) => {
         console.error(chalk.red(`[ERROR]:`), error);
     }
     
+    // Procesador de niveles silencioso
     level(m);
 };

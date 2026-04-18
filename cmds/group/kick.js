@@ -14,40 +14,55 @@ export default {
         
         // Definición de IDs importantes
         const ownerGroup = groupInfo.owner || m.chat.split`-`[0] + '@s.whatsapp.net'
-        const ownerBot = global.owner[0][0] + '@s.whatsapp.net'
         const botId = client.decodeJid(client.user.id)
         
-        // Buscar si el usuario es Admin
-        const isAdmin = groupInfo.participants.find(p => p.id === user)?.admin !== null
+        // Obtenemos la lista de dueños configurada en global.owner
+        const ownersBot = global.owner.map(num => num.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
+        
+        // ¿Quién es el que está ejecutando el comando?
+        const isSenderOwner = ownersBot.includes(m.sender) || m.sender === botId
+        
+        // ¿El objetivo es un Admin?
+        const participantObj = groupInfo.participants.find(p => p.id === user)
+        const isTargetAdmin = participantObj?.admin !== null
 
-        // --- PROTECCIONES ---
+        // --- 🛡️ PROTECCIONES ---
 
-        // Casos 1 y 2: Dueño del Bot o Dueño del Grupo
-        if (user === ownerBot || user === ownerGroup) {
-            return m.reply('《✧》 No puedo expulsar a mi creador o al dueño del grupo. ¡Eso sería traición! ♡')
+        // Caso 1: No expulsar a los Dueños del Bot (Owners)
+        if (ownersBot.includes(user)) {
+            return m.reply('《✧》 No puedo expulsar a mi creador. ¡Eso sería traición! ♡')
+        }
+
+        // Caso 2: No expulsar al Dueño del Grupo (Creador del chat)
+        if (user === ownerGroup) {
+            return m.reply('《✧》 No puedo expulsar al dueño del grupo. ♡')
         }
 
         // Caso 3: El Bot a sí mismo
         if (user === botId) {
-            return m.reply('「✿」 ¿Intentas que me vaya? No puedo eliminarme a mí mismo del grupo. ꕤ')
+            return m.reply('「✿」 ¿Intentas que me vaya? Usa !out si quieres que me retire. ꕤ')
         }
 
-        // Caso 4: Otros Administradores (NUEVO)
-        if (isAdmin) {
-            return m.reply('《✧》 No puedo eliminar a otro Administrador. Por favor, quítale el rango primero. ♡')
+        // Caso 4: Otros Administradores (LOGICA MODIFICADA)
+        if (isTargetAdmin) {
+            // Si el que ordena NO es el dueño ni el bot, bloqueamos la expulsión
+            if (!isSenderOwner) {
+                return m.reply('《✧》 No puedo eliminar a otro Administrador. Solo mi Creador tiene el poder de hacer eso. ♡')
+            }
+            // Si el que ordena ES dueño o bot, el código sigue adelante y lo expulsa
         }
 
         // 2. EJECUCIÓN
         try {
-            const participant = groupInfo.participants.find((p) => p.id === user)
-            if (!participant) {
-                return client.reply(m.chat, `《✧》 *@${user.split('@')[0]}* ya no está en el grupo.`, m, { mentions: [user] })
+            if (!participantObj) {
+                return client.reply(m.chat, `《✧》 *@${user.split('@')[0]}* ya no está en el grupo. ♡`, m, { mentions: [user] })
             }
 
             await client.groupParticipantsUpdate(m.chat, [user], 'remove')
-            client.reply(m.chat, `「✿」 Usuario @${user.split('@')[0]} *eliminado* con éxito. ◢`, m, { mentions: [user] })
+            client.reply(m.chat, `「✿」 Usuario @${user.split('@')[0]} *eliminado* por orden superior. ◢`, m, { mentions: [user] })
 
         } catch (e) {
+            console.error(e)
             return m.reply(`《✧》 Ocurrió un error inesperado al intentar eliminar al usuario. ♡`)
         }
     },

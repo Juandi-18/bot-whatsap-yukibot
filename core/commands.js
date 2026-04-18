@@ -231,6 +231,8 @@ utils: `\n» ˚୨•(=^●ω●^=)• ⊹ \`UTILITIES\` ⊹
 > Ver el número de bots activos en el sistema.
 ꕤ \`$prefixdel\`+ <cantidad>
 > Borra una cantidad específica de mensajes.
+ꕤ \`$prefixdox\` » \`$prefixdoxeo\` » \`$prefixdoxear\`
+> Ver el estado actual y salud del bot.
 ꕤ \`$prefixstatus\` » \`$prefixestado\`
 > Ver el estado actual y salud del bot.
 ꕤ \`$prefixping\` » \`$prefixp\` » \`$prefixspeed\`

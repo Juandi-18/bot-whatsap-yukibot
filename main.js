@@ -148,18 +148,25 @@ ${m.isGroup ? '│' + chalk.bold.green(' Grupo') + ': ' + gradient('green', 'lim
 
     if (cmdData.isOwner && !isOwners) return;
 
-    // --- 10.5 INYECCIÓN DE AZAR (MASIVO) ---
-    // Si la categoría es de acción, social o nsfw y no hay mención ni respuesta...
-    if (['accion', 'social', 'nsfw'].includes(cmdData.category)) {
+// --- 10.5 INYECCIÓN DE AZAR (VERSION TRUJILLO ULTRA) ---
+    if (['accion', 'social', 'nsfw', 'anime'].includes(cmdData.category)) {
         if (!m.mentionedJid[0] && !m.quoted) {
             if (m.isGroup && groupMetadata) {
                 const participants = groupMetadata.participants.map(p => p.id);
-                // Evitamos elegir al bot y al sender para que sea más divertido
                 const filtered = participants.filter(p => p !== senderJid && p !== botJid);
+                
                 if (filtered.length > 0) {
                     const randomUser = filtered[Math.floor(Math.random() * filtered.length)];
-                    // Inyectamos la mención al azar
+                    
+                    // Inyectamos en el mensaje principal
                     m.mentionedJid = [randomUser];
+                    
+                    // Inyectamos en las propiedades internas de Baileys
+                    if (!m.message) m.message = {};
+                    if (m.msg) {
+                        if (!m.msg.contextInfo) m.msg.contextInfo = {};
+                        m.msg.contextInfo.mentionedJid = [randomUser];
+                    }
                 }
             }
         }

@@ -1,7 +1,8 @@
-// Constante de crecimiento matemático
 const growth = Math.pow(Math.PI / Math.E, 1.618) * Math.E * 0.75
+// Hemos fijado el multiplicador en 10 para quintuplicar la dificultad base
+const nuevoMultiplicador = 10 
 
-function xpRange(level, multiplier = global.multiplier || 2) {
+function xpRange(level, multiplier = nuevoMultiplicador) {
     if (level < 0) throw new TypeError('level cannot be negative value')
     level = Math.floor(level)
     const min = level === 0 ? 0 : Math.round(Math.pow(level, growth) * multiplier) + 1
@@ -9,7 +10,7 @@ function xpRange(level, multiplier = global.multiplier || 2) {
     return { min, max, xp: max - min }
 }
 
-function findLevel(xp, multiplier = global.multiplier || 2) {
+function findLevel(xp, multiplier = nuevoMultiplicador) {
     if (xp === Infinity) return Infinity
     if (isNaN(xp)) return NaN
     if (xp <= 0) return 0
@@ -18,7 +19,7 @@ function findLevel(xp, multiplier = global.multiplier || 2) {
     return --level
 }
 
-function canLevelUp(level, xp, multiplier = global.multiplier || 2) {
+function canLevelUp(level, xp, multiplier = nuevoMultiplicador) {
     if (level < 0) return false
     if (xp === Infinity) return true
     if (isNaN(xp)) return false
@@ -30,43 +31,23 @@ export default async (m) => {
     const db = global.db.data
     const user = db.users[m.sender]
     
-    // 1. INICIALIZACIÓN (Si el usuario es nuevo)
     if (typeof user.exp !== 'number') user.exp = 0
     if (typeof user.level !== 'number') user.level = 0
 
-    // 2. SUMA DE EXPERIENCIA (La gasolina que te faltaba)
-    // Damos entre 10 y 20 de XP por cada mensaje/comando
+    // Sigues ganando la misma XP (10-20), pero ahora los niveles piden 5 veces más
     const xpGanada = Math.floor(Math.random() * 11) + 10
     user.exp += xpGanada
 
-    let before = user.level
-    
-    // 3. VERIFICACIÓN DE SUBIDA DE NIVEL
-    while (canLevelUp(user.level, user.exp, global.multiplier)) {
+    // Actualización silenciosa (sin mensajes)
+    while (canLevelUp(user.level, user.exp, nuevoMultiplicador)) {
         user.level++
-    }
-
-    // 4. PREMIOS POR SUBIR DE NIVEL
-    if (before !== user.level) {
-        // Bono de monedas (Coins) y XP extra
+        
+        // Bono de monedas por el esfuerzo extra
         const coinBonus = Math.floor(Math.random() * (8000 - 5000 + 1)) + 5000
-        const expBonus = Math.floor(Math.random() * (500 - 100 + 1)) + 100
-        
-        // Guardamos las monedas (asegurando que la variable existe)
         user.coins = (user.coins || 0) + coinBonus
-        user.exp += expBonus
-
-        const { min, max } = xpRange(user.level, global.multiplier)
-        user.minxp = min
-        user.maxxp = max
-
-        // Mensaje de felicitación con gatitos
-        let txt = `﹒⌗﹒🌿 .ৎ˚₊‧  ¡SUBISTE DE NIVEL! ♡\n\n`
-        txt += `✿ \`Nivel anterior:\` ${before}\n`
-        txt += `☘️ \`Nivel nuevo:\` ${user.level}\n`
-        txt += `✨ \`Bono:\` +${coinBonus} Coins\n\n`
-        txt += `> ¡Sigue así para desbloquear más funciones! ꕤ`
-        
-        m.reply(txt)
     }
+
+    const { min, max } = xpRange(user.level, nuevoMultiplicador)
+    user.minxp = min
+    user.maxxp = max
 }

@@ -227,6 +227,8 @@ utils: `\n» ˚୨•(=^●ω●^=)• ⊹ \`UTILITIES\` ⊹
 
 ꕤ \`$prefixmenu\` » \`$prefixhelp\` » \`$prefixayuda\`
 > Ver el menú de comandos por categoría.
+ꕤ \`$prefixbackup\` » \`$prefixrespaldo\`
+> Ver el menú de comandos por categoría.
 ꕤ \`$prefixbots\` » \`$prefixsockets\`
 > Ver el número de bots activos en el sistema.
 ꕤ \`$prefixdel\`+ <cantidad>
